@@ -7,7 +7,7 @@ using Antlr4.Runtime.Tree;
 using OperandContext = CalculatorParser.OperandContext;
 using ExpressionContext = CalculatorParser.ExpressionContext;
 
-namespace CBlunt.ANTLR
+namespace CBlunt.ANTLR.Parser
 {
     internal class CalculatorVisitor : CalculatorBaseVisitor<int>
     {

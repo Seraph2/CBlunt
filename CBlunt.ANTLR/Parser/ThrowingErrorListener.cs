@@ -2,7 +2,7 @@
 using System.IO;
 using Antlr4.Runtime;
 
-namespace CBlunt.ANTLR
+namespace CBlunt.ANTLR.Parser
 {
     internal class ThrowingErrorListener<TSymbol> : IAntlrErrorListener<TSymbol>
     {

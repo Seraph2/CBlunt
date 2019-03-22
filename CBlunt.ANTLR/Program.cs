@@ -7,18 +7,19 @@ using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
+using CBlunt.ANTLR.Parser;
 
 namespace CBlunt.ANTLR
 {
     class Program
     {
-        private string GetInput()
+        private static string GetInput()
         {
             Console.Write("Enter a value to evaluate: ");
             return Console.ReadLine();
         }
 
-        private int EvaluateInput(string input)
+        private static int EvaluateInput(string input)
         {
             CalculatorLexer lexer = new CalculatorLexer(new AntlrInputStream(input));
 
@@ -33,31 +34,29 @@ namespace CBlunt.ANTLR
             return new CalculatorVisitor().Visit(parser.expression());
         }
 
-        private void DisplayResult(int result)
+        private static void DisplayResult(int result)
         {
             Console.WriteLine($"Result: {result}");
         }
 
-        private void DisplayError(Exception ex)
+        private static void DisplayError(Exception ex)
         {
             Console.WriteLine("Something didn't go as expected:");
             Console.WriteLine(ex.Message);
         }
 
-        static void Main()
+        public static void Main()
         {
-            Program program = new Program();
-
             try
             {
-                string input = program.GetInput();
-                int result = program.EvaluateInput(input);
+                string input = GetInput();
+                int result = EvaluateInput(input);
 
-                program.DisplayResult(result);
+                DisplayResult(result);
             }
             catch (Exception ex)
             {
-                program.DisplayError(ex);
+                DisplayError(ex);
             }
 
             Console.Write($"{Environment.NewLine}Press ENTER to exit: ");
