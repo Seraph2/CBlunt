@@ -12,38 +12,56 @@ namespace CBlunt.ANTLR
 {
     class Program
     {
-        private static void Main(string[] args)
+        private string GetInput()
         {
+            Console.Write("Enter a value to evaluate: ");
+            return Console.ReadLine();
+        }
+
+        private int EvaluateInput(string input)
+        {
+            CalculatorLexer lexer = new CalculatorLexer(new AntlrInputStream(input));
+
+            lexer.RemoveErrorListeners();
+            lexer.AddErrorListener(new ThrowingErrorListener<int>());
+
+            CalculatorParser parser = new CalculatorParser(new CommonTokenStream(lexer));
+
+            parser.RemoveErrorListeners();
+            parser.AddErrorListener(new ThrowingErrorListener<IToken>());
+
+            return new CalculatorVisitor().Visit(parser.expression());
+        }
+
+        private void DisplayResult(int result)
+        {
+            Console.WriteLine($"Result: {result}");
+        }
+
+        private void DisplayError(Exception ex)
+        {
+            Console.WriteLine("Something didn't go as expected:");
+            Console.WriteLine(ex.Message);
+        }
+
+        static void Main()
+        {
+            Program program = new Program();
+
             try
             {
-                string input = "";
-                StringBuilder text = new StringBuilder();
-                Console.WriteLine("Input the chat.");
-                
-                // to type the EOF character and end the input: use CTRL+D, then press <enter>
-                while ((input = Console.ReadLine()) != "\u0004")
-                {
-                    text.AppendLine(input);
-                }
-                
-                AntlrInputStream inputStream = new AntlrInputStream(text.ToString());
-                SpeakLexer speakLexer = new SpeakLexer(inputStream);
-                CommonTokenStream commonTokenStream = new CommonTokenStream(speakLexer);
-                SpeakParser speakParser = new SpeakParser(commonTokenStream);
+                string input = program.GetInput();
+                int result = program.EvaluateInput(input);
 
-                SpeakParser.ChatContext chatContext = speakParser.chat();                
-                SpeakVisitor visitor = new SpeakVisitor();                
-                visitor.Visit(chatContext);                
-
-                foreach(var line in visitor.Lines)
-                {
-                    Console.WriteLine("{0} has said {1}", line.Person, line.Text);
-                }
+                program.DisplayResult(result);
             }
             catch (Exception ex)
-            {                
-                Console.WriteLine("Error: " + ex);                
+            {
+                program.DisplayError(ex);
             }
+
+            Console.Write($"{Environment.NewLine}Press ENTER to exit: ");
+            Console.ReadKey();
         }
     }
 }
