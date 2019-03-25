@@ -1,4 +1,4 @@
-grammar Calculator;
+grammar CBlunt;
 expression: operand (OPERATOR operand)+;
 
 operand: DIGIT | LPAREN operand (OPERATOR operand)+ RPAREN;

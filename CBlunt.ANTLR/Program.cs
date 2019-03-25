@@ -21,12 +21,12 @@ namespace CBlunt.ANTLR
 
         private static int EvaluateInput(string input)
         {
-            CalculatorLexer lexer = new CalculatorLexer(new AntlrInputStream(input));
+            CBluntLexer lexer = new CBluntLexer(new AntlrInputStream(input));
 
             lexer.RemoveErrorListeners();
             lexer.AddErrorListener(new ThrowingErrorListener<int>());
 
-            CalculatorParser parser = new CalculatorParser(new CommonTokenStream(lexer));
+            CBluntParser parser = new CBluntParser(new CommonTokenStream(lexer));
 
             parser.RemoveErrorListeners();
             parser.AddErrorListener(new ThrowingErrorListener<IToken>());

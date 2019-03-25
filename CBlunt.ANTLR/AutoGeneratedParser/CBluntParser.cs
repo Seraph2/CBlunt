@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Calculator.g4 by ANTLR 4.7.2
+// Generated from CBlunt.g4 by ANTLR 4.7.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -33,7 +33,7 @@ using DFA = Antlr4.Runtime.Dfa.DFA;
 
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.7.2")]
 [System.CLSCompliant(false)]
-public partial class CalculatorParser : Parser {
+public partial class CBluntParser : Parser {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
@@ -63,22 +63,22 @@ public partial class CalculatorParser : Parser {
 		}
 	}
 
-	public override string GrammarFileName { get { return "Calculator.g4"; } }
+	public override string GrammarFileName { get { return "CBlunt.g4"; } }
 
 	public override string[] RuleNames { get { return ruleNames; } }
 
 	public override string SerializedAtn { get { return new string(_serializedATN); } }
 
-	static CalculatorParser() {
+	static CBluntParser() {
 		decisionToDFA = new DFA[_ATN.NumberOfDecisions];
 		for (int i = 0; i < _ATN.NumberOfDecisions; i++) {
 			decisionToDFA[i] = new DFA(_ATN.GetDecisionState(i), i);
 		}
 	}
 
-		public CalculatorParser(ITokenStream input) : this(input, Console.Out, Console.Error) { }
+		public CBluntParser(ITokenStream input) : this(input, Console.Out, Console.Error) { }
 
-		public CalculatorParser(ITokenStream input, TextWriter output, TextWriter errorOutput)
+		public CBluntParser(ITokenStream input, TextWriter output, TextWriter errorOutput)
 		: base(input, output, errorOutput)
 	{
 		Interpreter = new ParserATNSimulator(this, _ATN, decisionToDFA, sharedContextCache);
@@ -91,9 +91,9 @@ public partial class CalculatorParser : Parser {
 		public OperandContext operand(int i) {
 			return GetRuleContext<OperandContext>(i);
 		}
-		public ITerminalNode[] OPERATOR() { return GetTokens(CalculatorParser.OPERATOR); }
+		public ITerminalNode[] OPERATOR() { return GetTokens(CBluntParser.OPERATOR); }
 		public ITerminalNode OPERATOR(int i) {
-			return GetToken(CalculatorParser.OPERATOR, i);
+			return GetToken(CBluntParser.OPERATOR, i);
 		}
 		public ExpressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -101,7 +101,7 @@ public partial class CalculatorParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_expression; } }
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			ICalculatorVisitor<TResult> typedVisitor = visitor as ICalculatorVisitor<TResult>;
+			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExpression(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -144,18 +144,18 @@ public partial class CalculatorParser : Parser {
 	}
 
 	public partial class OperandContext : ParserRuleContext {
-		public ITerminalNode DIGIT() { return GetToken(CalculatorParser.DIGIT, 0); }
-		public ITerminalNode LPAREN() { return GetToken(CalculatorParser.LPAREN, 0); }
+		public ITerminalNode DIGIT() { return GetToken(CBluntParser.DIGIT, 0); }
+		public ITerminalNode LPAREN() { return GetToken(CBluntParser.LPAREN, 0); }
 		public OperandContext[] operand() {
 			return GetRuleContexts<OperandContext>();
 		}
 		public OperandContext operand(int i) {
 			return GetRuleContext<OperandContext>(i);
 		}
-		public ITerminalNode RPAREN() { return GetToken(CalculatorParser.RPAREN, 0); }
-		public ITerminalNode[] OPERATOR() { return GetTokens(CalculatorParser.OPERATOR); }
+		public ITerminalNode RPAREN() { return GetToken(CBluntParser.RPAREN, 0); }
+		public ITerminalNode[] OPERATOR() { return GetTokens(CBluntParser.OPERATOR); }
 		public ITerminalNode OPERATOR(int i) {
-			return GetToken(CalculatorParser.OPERATOR, i);
+			return GetToken(CBluntParser.OPERATOR, i);
 		}
 		public OperandContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -163,7 +163,7 @@ public partial class CalculatorParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_operand; } }
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			ICalculatorVisitor<TResult> typedVisitor = visitor as ICalculatorVisitor<TResult>;
+			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitOperand(this);
 			else return visitor.VisitChildren(this);
 		}
