@@ -1,6 +1,9 @@
 grammar CBlunt;
-expression: operand (OPERATOR operand)+;
 
+@parser::header {#pragma warning disable 3021}
+@lexer::header {#pragma warning disable 3021}
+
+expression: operand (OPERATOR operand)+;
 operand: DIGIT | LPAREN operand (OPERATOR operand)+ RPAREN;
 
 LPAREN: '(';
