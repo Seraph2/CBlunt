@@ -17,12 +17,8 @@ public class CBluntLexer extends Lexer {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-<<<<<<< HEAD
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, NUMBER=7, STRING=8, ID=9, 
 		DIGIT=10, WS=11;
-=======
-		NUMBER=1, ID=2, SEMICOLON=3, DIGIT=4, WS=5;
->>>>>>> test-antlr
 	public static String[] channelNames = {
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	};
@@ -32,7 +28,6 @@ public class CBluntLexer extends Lexer {
 	};
 
 	public static final String[] ruleNames = {
-<<<<<<< HEAD
 		"T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "NUMBER", "STRING", "ID", 
 		"DIGIT", "WS"
 	};
@@ -43,16 +38,6 @@ public class CBluntLexer extends Lexer {
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, "NUMBER", "STRING", "ID", "DIGIT", 
 		"WS"
-=======
-		"NUMBER", "ID", "SEMICOLON", "DIGIT", "WS"
-	};
-
-	private static final String[] _LITERAL_NAMES = {
-		null, null, null, "';'"
-	};
-	private static final String[] _SYMBOLIC_NAMES = {
-		null, "NUMBER", "ID", "SEMICOLON", "DIGIT", "WS"
->>>>>>> test-antlr
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -112,7 +97,6 @@ public class CBluntLexer extends Lexer {
 	public ATN getATN() { return _ATN; }
 
 	public static final String _serializedATN =
-<<<<<<< HEAD
 		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\2\r]\b\1\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\3\2\3\2\3\3\3\3\3\4\3\4\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\6\3"+
@@ -138,24 +122,6 @@ public class CBluntLexer extends Lexer {
 		"\2RQ\3\2\2\2ST\3\2\2\2TR\3\2\2\2TU\3\2\2\2U\26\3\2\2\2VX\t\5\2\2WV\3\2"+
 		"\2\2XY\3\2\2\2YW\3\2\2\2YZ\3\2\2\2Z[\3\2\2\2[\\\b\f\2\2\\\30\3\2\2\2\13"+
 		"\2\638>@GNTY\3\b\2\2";
-=======
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\2\7\62\b\1\4\2\t\2"+
-		"\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\5\2\17\n\2\3\2\6\2\22\n\2\r\2\16"+
-		"\2\23\3\2\3\2\6\2\30\n\2\r\2\16\2\31\5\2\34\n\2\3\3\3\3\7\3 \n\3\f\3\16"+
-		"\3#\13\3\3\4\3\4\3\5\6\5(\n\5\r\5\16\5)\3\6\6\6-\n\6\r\6\16\6.\3\6\3\6"+
-		"\2\2\7\3\3\5\4\7\5\t\6\13\7\3\2\6\3\2\62;\5\2C\\aac|\6\2\62;C\\aac|\5"+
-		"\2\13\f\17\17\"\"\28\2\3\3\2\2\2\2\5\3\2\2\2\2\7\3\2\2\2\2\t\3\2\2\2\2"+
-		"\13\3\2\2\2\3\16\3\2\2\2\5\35\3\2\2\2\7$\3\2\2\2\t\'\3\2\2\2\13,\3\2\2"+
-		"\2\r\17\7/\2\2\16\r\3\2\2\2\16\17\3\2\2\2\17\21\3\2\2\2\20\22\t\2\2\2"+
-		"\21\20\3\2\2\2\22\23\3\2\2\2\23\21\3\2\2\2\23\24\3\2\2\2\24\33\3\2\2\2"+
-		"\25\27\7\60\2\2\26\30\t\2\2\2\27\26\3\2\2\2\30\31\3\2\2\2\31\27\3\2\2"+
-		"\2\31\32\3\2\2\2\32\34\3\2\2\2\33\25\3\2\2\2\33\34\3\2\2\2\34\4\3\2\2"+
-		"\2\35!\t\3\2\2\36 \t\4\2\2\37\36\3\2\2\2 #\3\2\2\2!\37\3\2\2\2!\"\3\2"+
-		"\2\2\"\6\3\2\2\2#!\3\2\2\2$%\7=\2\2%\b\3\2\2\2&(\t\2\2\2\'&\3\2\2\2()"+
-		"\3\2\2\2)\'\3\2\2\2)*\3\2\2\2*\n\3\2\2\2+-\t\5\2\2,+\3\2\2\2-.\3\2\2\2"+
-		".,\3\2\2\2./\3\2\2\2/\60\3\2\2\2\60\61\b\6\2\2\61\f\3\2\2\2\n\2\16\23"+
-		"\31\33!).\3\b\2\2";
->>>>>>> test-antlr
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

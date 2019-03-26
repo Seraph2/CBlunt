@@ -38,7 +38,6 @@ public partial class CBluntParser : Parser {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
-<<<<<<< HEAD
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, NUMBER=7, STRING=8, ID=9, 
 		DIGIT=10, WS=11;
 	public const int
@@ -54,20 +53,6 @@ public partial class CBluntParser : Parser {
 	private static readonly string[] _SymbolicNames = {
 		null, null, null, null, null, null, null, "NUMBER", "STRING", "ID", "DIGIT", 
 		"WS"
-=======
-		NUMBER=1, ID=2, SEMICOLON=3, DIGIT=4, WS=5;
-	public const int
-		RULE_start = 0, RULE_expression = 1, RULE_identifier = 2;
-	public static readonly string[] ruleNames = {
-		"start", "expression", "identifier"
-	};
-
-	private static readonly string[] _LiteralNames = {
-		null, null, null, "';'"
-	};
-	private static readonly string[] _SymbolicNames = {
-		null, "NUMBER", "ID", "SEMICOLON", "DIGIT", "WS"
->>>>>>> test-antlr
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -104,7 +89,6 @@ public partial class CBluntParser : Parser {
 	public partial class StartContext : ParserRuleContext {
 		public ExpressionContext expression() {
 			return GetRuleContext<ExpressionContext>(0);
-<<<<<<< HEAD
 		}
 		public StartContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -147,23 +131,18 @@ public partial class CBluntParser : Parser {
 			return GetRuleContext<DeclarationContext>(i);
 		}
 		public ExpressionContext(ParserRuleContext parent, int invokingState)
-=======
-		}
-		public StartContext(ParserRuleContext parent, int invokingState)
->>>>>>> test-antlr
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_start; } }
+		public override int RuleIndex { get { return RULE_expression; } }
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitStart(this);
+			if (typedVisitor != null) return typedVisitor.VisitExpression(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-<<<<<<< HEAD
 	public ExpressionContext expression() {
 		ExpressionContext _localctx = new ExpressionContext(Context, State);
 		EnterRule(_localctx, 2, RULE_expression);
@@ -197,15 +176,6 @@ public partial class CBluntParser : Parser {
 				State = 19; declaration();
 				}
 				break;
-=======
-	public StartContext start() {
-		StartContext _localctx = new StartContext(Context, State);
-		EnterRule(_localctx, 0, RULE_start);
-		try {
-			EnterOuterAlt(_localctx, 1);
-			{
-			State = 6; expression();
->>>>>>> test-antlr
 			}
 		}
 		catch (RecognitionException re) {
@@ -219,7 +189,6 @@ public partial class CBluntParser : Parser {
 		return _localctx;
 	}
 
-<<<<<<< HEAD
 	public partial class IdentifierContext : ParserRuleContext {
 		public ITerminalNode ID() { return GetToken(CBluntParser.ID, 0); }
 		public IdentifierContext(ParserRuleContext parent, int invokingState)
@@ -272,33 +241,11 @@ public partial class CBluntParser : Parser {
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDeclaration(this);
-=======
-	public partial class ExpressionContext : ParserRuleContext {
-		public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
-		}
-		public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
-		}
-		public ITerminalNode[] SEMICOLON() { return GetTokens(CBluntParser.SEMICOLON); }
-		public ITerminalNode SEMICOLON(int i) {
-			return GetToken(CBluntParser.SEMICOLON, i);
-		}
-		public ExpressionContext(ParserRuleContext parent, int invokingState)
-			: base(parent, invokingState)
-		{
-		}
-		public override int RuleIndex { get { return RULE_expression; } }
-		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitExpression(this);
->>>>>>> test-antlr
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-<<<<<<< HEAD
 	public DeclarationContext declaration() {
 		DeclarationContext _localctx = new DeclarationContext(Context, State);
 		EnterRule(_localctx, 6, RULE_declaration);
@@ -331,27 +278,10 @@ public partial class CBluntParser : Parser {
 				State = 32; types();
 				State = 33; identifier();
 				State = 38;
-=======
-	public ExpressionContext expression() {
-		ExpressionContext _localctx = new ExpressionContext(Context, State);
-		EnterRule(_localctx, 2, RULE_expression);
-		int _la;
-		try {
-			State = 20;
-			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
-				{
-				State = 8; identifier();
-				State = 9; Match(SEMICOLON);
-				State = 11;
->>>>>>> test-antlr
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==T__0) {
 					{
-<<<<<<< HEAD
 					State = 34; Match(T__0);
 					State = 35; Match(T__2);
 					State = 36; Match(ID);
@@ -360,23 +290,6 @@ public partial class CBluntParser : Parser {
 				}
 
 				State = 40; Match(T__1);
-=======
-					State = 10; identifier();
-					}
-					}
-					State = 13;
-					ErrorHandler.Sync(this);
-					_la = TokenStream.LA(1);
-				} while ( _la==ID );
-				State = 15; Match(SEMICOLON);
-				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 17; identifier();
-				State = 18; Match(SEMICOLON);
->>>>>>> test-antlr
 				}
 				break;
 			}
@@ -392,7 +305,6 @@ public partial class CBluntParser : Parser {
 		return _localctx;
 	}
 
-<<<<<<< HEAD
 	public partial class TypesContext : ParserRuleContext {
 		public TypesContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -402,24 +314,11 @@ public partial class CBluntParser : Parser {
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitTypes(this);
-=======
-	public partial class IdentifierContext : ParserRuleContext {
-		public ITerminalNode ID() { return GetToken(CBluntParser.ID, 0); }
-		public IdentifierContext(ParserRuleContext parent, int invokingState)
-			: base(parent, invokingState)
-		{
-		}
-		public override int RuleIndex { get { return RULE_identifier; } }
-		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitIdentifier(this);
->>>>>>> test-antlr
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-<<<<<<< HEAD
 	public TypesContext types() {
 		TypesContext _localctx = new TypesContext(Context, State);
 		EnterRule(_localctx, 8, RULE_types);
@@ -436,15 +335,6 @@ public partial class CBluntParser : Parser {
 				ErrorHandler.ReportMatch(this);
 			    Consume();
 			}
-=======
-	public IdentifierContext identifier() {
-		IdentifierContext _localctx = new IdentifierContext(Context, State);
-		EnterRule(_localctx, 4, RULE_identifier);
-		try {
-			EnterOuterAlt(_localctx, 1);
-			{
-			State = 22; Match(ID);
->>>>>>> test-antlr
 			}
 		}
 		catch (RecognitionException re) {
@@ -460,7 +350,6 @@ public partial class CBluntParser : Parser {
 
 	private static char[] _serializedATN = {
 		'\x3', '\x608B', '\xA72A', '\x8133', '\xB9ED', '\x417C', '\x3BE7', '\x7786', 
-<<<<<<< HEAD
 		'\x5964', '\x3', '\r', '\x31', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
 		'\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', '\x5', '\x4', 
 		'\x6', '\t', '\x6', '\x3', '\x2', '\x3', '\x2', '\x3', '\x3', '\x3', '\x3', 
@@ -499,29 +388,6 @@ public partial class CBluntParser : Parser {
 		'\x2', ',', '\"', '\x3', '\x2', '\x2', '\x2', '-', '\t', '\x3', '\x2', 
 		'\x2', '\x2', '.', '/', '\t', '\x2', '\x2', '\x2', '/', '\v', '\x3', '\x2', 
 		'\x2', '\x2', '\a', '\x12', '\x16', '\x1E', '(', ',',
-=======
-		'\x5964', '\x3', '\a', '\x1B', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
-		'\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x3', '\x2', '\x3', '\x2', '\x3', 
-		'\x3', '\x3', '\x3', '\x3', '\x3', '\x6', '\x3', '\xE', '\n', '\x3', '\r', 
-		'\x3', '\xE', '\x3', '\xF', '\x3', '\x3', '\x3', '\x3', '\x3', '\x3', 
-		'\x3', '\x3', '\x3', '\x3', '\x5', '\x3', '\x17', '\n', '\x3', '\x3', 
-		'\x4', '\x3', '\x4', '\x3', '\x4', '\x2', '\x2', '\x5', '\x2', '\x4', 
-		'\x6', '\x2', '\x2', '\x2', '\x19', '\x2', '\b', '\x3', '\x2', '\x2', 
-		'\x2', '\x4', '\x16', '\x3', '\x2', '\x2', '\x2', '\x6', '\x18', '\x3', 
-		'\x2', '\x2', '\x2', '\b', '\t', '\x5', '\x4', '\x3', '\x2', '\t', '\x3', 
-		'\x3', '\x2', '\x2', '\x2', '\n', '\v', '\x5', '\x6', '\x4', '\x2', '\v', 
-		'\r', '\a', '\x5', '\x2', '\x2', '\f', '\xE', '\x5', '\x6', '\x4', '\x2', 
-		'\r', '\f', '\x3', '\x2', '\x2', '\x2', '\xE', '\xF', '\x3', '\x2', '\x2', 
-		'\x2', '\xF', '\r', '\x3', '\x2', '\x2', '\x2', '\xF', '\x10', '\x3', 
-		'\x2', '\x2', '\x2', '\x10', '\x11', '\x3', '\x2', '\x2', '\x2', '\x11', 
-		'\x12', '\a', '\x5', '\x2', '\x2', '\x12', '\x17', '\x3', '\x2', '\x2', 
-		'\x2', '\x13', '\x14', '\x5', '\x6', '\x4', '\x2', '\x14', '\x15', '\a', 
-		'\x5', '\x2', '\x2', '\x15', '\x17', '\x3', '\x2', '\x2', '\x2', '\x16', 
-		'\n', '\x3', '\x2', '\x2', '\x2', '\x16', '\x13', '\x3', '\x2', '\x2', 
-		'\x2', '\x17', '\x5', '\x3', '\x2', '\x2', '\x2', '\x18', '\x19', '\a', 
-		'\x4', '\x2', '\x2', '\x19', '\a', '\x3', '\x2', '\x2', '\x2', '\x4', 
-		'\xF', '\x16',
->>>>>>> test-antlr
 	};
 
 	public static readonly ATN _ATN =
