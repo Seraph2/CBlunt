@@ -46,12 +46,6 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExpression([NotNull] CBluntParser.ExpressionContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CBluntParser.identifier"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIdentifier([NotNull] CBluntParser.IdentifierContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

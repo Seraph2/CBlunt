@@ -21,6 +21,8 @@ namespace CBlunt.ANTLR
 
         private static int EvaluateInput(string input)
         {
+
+
             CBluntLexer lexer = new CBluntLexer(new AntlrInputStream(input));
 
             lexer.RemoveErrorListeners();
@@ -41,7 +43,7 @@ namespace CBlunt.ANTLR
 
         private static void DisplayError(Exception ex)
         {
-            Console.WriteLine("Something didn't go as expected:");
+            Console.WriteLine("Parser error:");
             Console.WriteLine(ex.Message);
         }
 
@@ -49,7 +51,8 @@ namespace CBlunt.ANTLR
         {
             try
             {
-                string input = GetInput();
+                //string input = GetInput();
+                string input = "void a;";
                 int result = EvaluateInput(input);
             }
             catch (Exception ex)
