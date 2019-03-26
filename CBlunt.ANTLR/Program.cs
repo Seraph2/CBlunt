@@ -31,7 +31,7 @@ namespace CBlunt.ANTLR
             parser.RemoveErrorListeners();
             parser.AddErrorListener(new ThrowingErrorListener<IToken>());
 
-            return new CBluntVisitor().Visit(parser.expression());
+            return new CBluntVisitor().Visit(parser.start());
         }
 
         private static void DisplayResult(int result)
@@ -51,8 +51,6 @@ namespace CBlunt.ANTLR
             {
                 string input = GetInput();
                 int result = EvaluateInput(input);
-
-                DisplayResult(result);
             }
             catch (Exception ex)
             {

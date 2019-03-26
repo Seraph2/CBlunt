@@ -38,20 +38,21 @@ public partial class CBluntParser : Parser {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
-		LPAREN=1, RPAREN=2, OPERATOR=3, ADD=4, SUBTRACT=5, MULTIPLY=6, DIVIDE=7, 
-		DIGIT=8, WS=9;
+		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, NUMBER=7, STRING=8, ID=9, 
+		DIGIT=10, WS=11;
 	public const int
-		RULE_expression = 0, RULE_operand = 1;
+		RULE_start = 0, RULE_expression = 1, RULE_identifier = 2, RULE_declaration = 3, 
+		RULE_types = 4;
 	public static readonly string[] ruleNames = {
-		"expression", "operand"
+		"start", "expression", "identifier", "declaration", "types"
 	};
 
 	private static readonly string[] _LiteralNames = {
-		null, "'('", "')'", null, "'+'", "'-'", "'*'", "'/'"
+		null, "'='", "';'", "'\"'", "'number'", "'string'", "'void'"
 	};
 	private static readonly string[] _SymbolicNames = {
-		null, "LPAREN", "RPAREN", "OPERATOR", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", 
-		"DIGIT", "WS"
+		null, null, null, null, null, null, null, "NUMBER", "STRING", "ID", "DIGIT", 
+		"WS"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -85,16 +86,49 @@ public partial class CBluntParser : Parser {
 		Interpreter = new ParserATNSimulator(this, _ATN, decisionToDFA, sharedContextCache);
 	}
 
+	public partial class StartContext : ParserRuleContext {
+		public ExpressionContext expression() {
+			return GetRuleContext<ExpressionContext>(0);
+		}
+		public StartContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_start; } }
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitStart(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public StartContext start() {
+		StartContext _localctx = new StartContext(Context, State);
+		EnterRule(_localctx, 0, RULE_start);
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 10; expression();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
 	public partial class ExpressionContext : ParserRuleContext {
-		public OperandContext[] operand() {
-			return GetRuleContexts<OperandContext>();
+		public DeclarationContext[] declaration() {
+			return GetRuleContexts<DeclarationContext>();
 		}
-		public OperandContext operand(int i) {
-			return GetRuleContext<OperandContext>(i);
-		}
-		public ITerminalNode[] OPERATOR() { return GetTokens(CBluntParser.OPERATOR); }
-		public ITerminalNode OPERATOR(int i) {
-			return GetToken(CBluntParser.OPERATOR, i);
+		public DeclarationContext declaration(int i) {
+			return GetRuleContext<DeclarationContext>(i);
 		}
 		public ExpressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -111,26 +145,37 @@ public partial class CBluntParser : Parser {
 	[RuleVersion(0)]
 	public ExpressionContext expression() {
 		ExpressionContext _localctx = new ExpressionContext(Context, State);
-		EnterRule(_localctx, 0, RULE_expression);
+		EnterRule(_localctx, 2, RULE_expression);
 		int _la;
 		try {
-			EnterOuterAlt(_localctx, 1);
-			{
-			State = 4; operand();
-			State = 7;
+			State = 20;
 			ErrorHandler.Sync(this);
-			_la = TokenStream.LA(1);
-			do {
+			switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
+			case 1:
+				EnterOuterAlt(_localctx, 1);
 				{
-				{
-				State = 5; Match(OPERATOR);
-				State = 6; operand();
-				}
-				}
-				State = 9;
+				State = 12; declaration();
+				State = 16;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-			} while ( _la==OPERATOR );
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__3) | (1L << T__4) | (1L << T__5))) != 0)) {
+					{
+					{
+					State = 13; declaration();
+					}
+					}
+					State = 18;
+					ErrorHandler.Sync(this);
+					_la = TokenStream.LA(1);
+				}
+				}
+				break;
+			case 2:
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 19; declaration();
+				}
+				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -144,71 +189,152 @@ public partial class CBluntParser : Parser {
 		return _localctx;
 	}
 
-	public partial class OperandContext : ParserRuleContext {
-		public ITerminalNode DIGIT() { return GetToken(CBluntParser.DIGIT, 0); }
-		public ITerminalNode LPAREN() { return GetToken(CBluntParser.LPAREN, 0); }
-		public OperandContext[] operand() {
-			return GetRuleContexts<OperandContext>();
-		}
-		public OperandContext operand(int i) {
-			return GetRuleContext<OperandContext>(i);
-		}
-		public ITerminalNode RPAREN() { return GetToken(CBluntParser.RPAREN, 0); }
-		public ITerminalNode[] OPERATOR() { return GetTokens(CBluntParser.OPERATOR); }
-		public ITerminalNode OPERATOR(int i) {
-			return GetToken(CBluntParser.OPERATOR, i);
-		}
-		public OperandContext(ParserRuleContext parent, int invokingState)
+	public partial class IdentifierContext : ParserRuleContext {
+		public ITerminalNode ID() { return GetToken(CBluntParser.ID, 0); }
+		public IdentifierContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_operand; } }
+		public override int RuleIndex { get { return RULE_identifier; } }
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitOperand(this);
+			if (typedVisitor != null) return typedVisitor.VisitIdentifier(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public OperandContext operand() {
-		OperandContext _localctx = new OperandContext(Context, State);
-		EnterRule(_localctx, 2, RULE_operand);
+	public IdentifierContext identifier() {
+		IdentifierContext _localctx = new IdentifierContext(Context, State);
+		EnterRule(_localctx, 4, RULE_identifier);
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 22; Match(ID);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class DeclarationContext : ParserRuleContext {
+		public TypesContext types() {
+			return GetRuleContext<TypesContext>(0);
+		}
+		public IdentifierContext identifier() {
+			return GetRuleContext<IdentifierContext>(0);
+		}
+		public ITerminalNode NUMBER() { return GetToken(CBluntParser.NUMBER, 0); }
+		public ITerminalNode ID() { return GetToken(CBluntParser.ID, 0); }
+		public DeclarationContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_declaration; } }
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeclaration(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public DeclarationContext declaration() {
+		DeclarationContext _localctx = new DeclarationContext(Context, State);
+		EnterRule(_localctx, 6, RULE_declaration);
 		int _la;
 		try {
-			State = 22;
+			State = 42;
 			ErrorHandler.Sync(this);
-			switch (TokenStream.LA(1)) {
-			case DIGIT:
+			switch ( Interpreter.AdaptivePredict(TokenStream,4,Context) ) {
+			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 11; Match(DIGIT);
-				}
-				break;
-			case LPAREN:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 12; Match(LPAREN);
-				State = 13; operand();
-				State = 16;
+				State = 24; types();
+				State = 25; identifier();
+				State = 28;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				do {
+				if (_la==T__0) {
 					{
-					{
-					State = 14; Match(OPERATOR);
-					State = 15; operand();
+					State = 26; Match(T__0);
+					State = 27; Match(NUMBER);
 					}
-					}
-					State = 18;
-					ErrorHandler.Sync(this);
-					_la = TokenStream.LA(1);
-				} while ( _la==OPERATOR );
-				State = 20; Match(RPAREN);
+				}
+
+				State = 30; Match(T__1);
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
+			case 2:
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 32; types();
+				State = 33; identifier();
+				State = 38;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+				if (_la==T__0) {
+					{
+					State = 34; Match(T__0);
+					State = 35; Match(T__2);
+					State = 36; Match(ID);
+					State = 37; Match(T__2);
+					}
+				}
+
+				State = 40; Match(T__1);
+				}
+				break;
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class TypesContext : ParserRuleContext {
+		public TypesContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_types; } }
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICBluntVisitor<TResult> typedVisitor = visitor as ICBluntVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTypes(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public TypesContext types() {
+		TypesContext _localctx = new TypesContext(Context, State);
+		EnterRule(_localctx, 8, RULE_types);
+		int _la;
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 44;
+			_la = TokenStream.LA(1);
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__3) | (1L << T__4) | (1L << T__5))) != 0)) ) {
+			ErrorHandler.RecoverInline(this);
+			}
+			else {
+				ErrorHandler.ReportMatch(this);
+			    Consume();
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -224,28 +350,44 @@ public partial class CBluntParser : Parser {
 
 	private static char[] _serializedATN = {
 		'\x3', '\x608B', '\xA72A', '\x8133', '\xB9ED', '\x417C', '\x3BE7', '\x7786', 
-		'\x5964', '\x3', '\v', '\x1B', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
-		'\t', '\x3', '\x3', '\x2', '\x3', '\x2', '\x3', '\x2', '\x6', '\x2', '\n', 
-		'\n', '\x2', '\r', '\x2', '\xE', '\x2', '\v', '\x3', '\x3', '\x3', '\x3', 
-		'\x3', '\x3', '\x3', '\x3', '\x3', '\x3', '\x6', '\x3', '\x13', '\n', 
-		'\x3', '\r', '\x3', '\xE', '\x3', '\x14', '\x3', '\x3', '\x3', '\x3', 
-		'\x5', '\x3', '\x19', '\n', '\x3', '\x3', '\x3', '\x2', '\x2', '\x4', 
-		'\x2', '\x4', '\x2', '\x2', '\x2', '\x1B', '\x2', '\x6', '\x3', '\x2', 
-		'\x2', '\x2', '\x4', '\x18', '\x3', '\x2', '\x2', '\x2', '\x6', '\t', 
-		'\x5', '\x4', '\x3', '\x2', '\a', '\b', '\a', '\x5', '\x2', '\x2', '\b', 
-		'\n', '\x5', '\x4', '\x3', '\x2', '\t', '\a', '\x3', '\x2', '\x2', '\x2', 
-		'\n', '\v', '\x3', '\x2', '\x2', '\x2', '\v', '\t', '\x3', '\x2', '\x2', 
-		'\x2', '\v', '\f', '\x3', '\x2', '\x2', '\x2', '\f', '\x3', '\x3', '\x2', 
-		'\x2', '\x2', '\r', '\x19', '\a', '\n', '\x2', '\x2', '\xE', '\xF', '\a', 
-		'\x3', '\x2', '\x2', '\xF', '\x12', '\x5', '\x4', '\x3', '\x2', '\x10', 
-		'\x11', '\a', '\x5', '\x2', '\x2', '\x11', '\x13', '\x5', '\x4', '\x3', 
-		'\x2', '\x12', '\x10', '\x3', '\x2', '\x2', '\x2', '\x13', '\x14', '\x3', 
-		'\x2', '\x2', '\x2', '\x14', '\x12', '\x3', '\x2', '\x2', '\x2', '\x14', 
-		'\x15', '\x3', '\x2', '\x2', '\x2', '\x15', '\x16', '\x3', '\x2', '\x2', 
-		'\x2', '\x16', '\x17', '\a', '\x4', '\x2', '\x2', '\x17', '\x19', '\x3', 
-		'\x2', '\x2', '\x2', '\x18', '\r', '\x3', '\x2', '\x2', '\x2', '\x18', 
-		'\xE', '\x3', '\x2', '\x2', '\x2', '\x19', '\x5', '\x3', '\x2', '\x2', 
-		'\x2', '\x5', '\v', '\x14', '\x18',
+		'\x5964', '\x3', '\r', '\x31', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
+		'\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', '\x5', '\x4', 
+		'\x6', '\t', '\x6', '\x3', '\x2', '\x3', '\x2', '\x3', '\x3', '\x3', '\x3', 
+		'\a', '\x3', '\x11', '\n', '\x3', '\f', '\x3', '\xE', '\x3', '\x14', '\v', 
+		'\x3', '\x3', '\x3', '\x5', '\x3', '\x17', '\n', '\x3', '\x3', '\x4', 
+		'\x3', '\x4', '\x3', '\x5', '\x3', '\x5', '\x3', '\x5', '\x3', '\x5', 
+		'\x5', '\x5', '\x1F', '\n', '\x5', '\x3', '\x5', '\x3', '\x5', '\x3', 
+		'\x5', '\x3', '\x5', '\x3', '\x5', '\x3', '\x5', '\x3', '\x5', '\x3', 
+		'\x5', '\x5', '\x5', ')', '\n', '\x5', '\x3', '\x5', '\x3', '\x5', '\x5', 
+		'\x5', '-', '\n', '\x5', '\x3', '\x6', '\x3', '\x6', '\x3', '\x6', '\x2', 
+		'\x2', '\a', '\x2', '\x4', '\x6', '\b', '\n', '\x2', '\x3', '\x3', '\x2', 
+		'\x6', '\b', '\x2', '\x30', '\x2', '\f', '\x3', '\x2', '\x2', '\x2', '\x4', 
+		'\x16', '\x3', '\x2', '\x2', '\x2', '\x6', '\x18', '\x3', '\x2', '\x2', 
+		'\x2', '\b', ',', '\x3', '\x2', '\x2', '\x2', '\n', '.', '\x3', '\x2', 
+		'\x2', '\x2', '\f', '\r', '\x5', '\x4', '\x3', '\x2', '\r', '\x3', '\x3', 
+		'\x2', '\x2', '\x2', '\xE', '\x12', '\x5', '\b', '\x5', '\x2', '\xF', 
+		'\x11', '\x5', '\b', '\x5', '\x2', '\x10', '\xF', '\x3', '\x2', '\x2', 
+		'\x2', '\x11', '\x14', '\x3', '\x2', '\x2', '\x2', '\x12', '\x10', '\x3', 
+		'\x2', '\x2', '\x2', '\x12', '\x13', '\x3', '\x2', '\x2', '\x2', '\x13', 
+		'\x17', '\x3', '\x2', '\x2', '\x2', '\x14', '\x12', '\x3', '\x2', '\x2', 
+		'\x2', '\x15', '\x17', '\x5', '\b', '\x5', '\x2', '\x16', '\xE', '\x3', 
+		'\x2', '\x2', '\x2', '\x16', '\x15', '\x3', '\x2', '\x2', '\x2', '\x17', 
+		'\x5', '\x3', '\x2', '\x2', '\x2', '\x18', '\x19', '\a', '\v', '\x2', 
+		'\x2', '\x19', '\a', '\x3', '\x2', '\x2', '\x2', '\x1A', '\x1B', '\x5', 
+		'\n', '\x6', '\x2', '\x1B', '\x1E', '\x5', '\x6', '\x4', '\x2', '\x1C', 
+		'\x1D', '\a', '\x3', '\x2', '\x2', '\x1D', '\x1F', '\a', '\t', '\x2', 
+		'\x2', '\x1E', '\x1C', '\x3', '\x2', '\x2', '\x2', '\x1E', '\x1F', '\x3', 
+		'\x2', '\x2', '\x2', '\x1F', ' ', '\x3', '\x2', '\x2', '\x2', ' ', '!', 
+		'\a', '\x4', '\x2', '\x2', '!', '-', '\x3', '\x2', '\x2', '\x2', '\"', 
+		'#', '\x5', '\n', '\x6', '\x2', '#', '(', '\x5', '\x6', '\x4', '\x2', 
+		'$', '%', '\a', '\x3', '\x2', '\x2', '%', '&', '\a', '\x5', '\x2', '\x2', 
+		'&', '\'', '\a', '\v', '\x2', '\x2', '\'', ')', '\a', '\x5', '\x2', '\x2', 
+		'(', '$', '\x3', '\x2', '\x2', '\x2', '(', ')', '\x3', '\x2', '\x2', '\x2', 
+		')', '*', '\x3', '\x2', '\x2', '\x2', '*', '+', '\a', '\x4', '\x2', '\x2', 
+		'+', '-', '\x3', '\x2', '\x2', '\x2', ',', '\x1A', '\x3', '\x2', '\x2', 
+		'\x2', ',', '\"', '\x3', '\x2', '\x2', '\x2', '-', '\t', '\x3', '\x2', 
+		'\x2', '\x2', '.', '/', '\t', '\x2', '\x2', '\x2', '/', '\v', '\x3', '\x2', 
+		'\x2', '\x2', '\a', '\x12', '\x16', '\x1E', '(', ',',
 	};
 
 	public static readonly ATN _ATN =
