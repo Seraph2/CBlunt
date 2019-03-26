@@ -8,14 +8,20 @@ start
     ;
 
 expression
+<<<<<<< HEAD
 	: declaration (declaration)*
     | declaration
+=======
+	: identifier ';' (identifier)+ ';'
+    | identifier ';'
+>>>>>>> test-antlr
 	;
 
 identifier
     : ID
     ;
 
+<<<<<<< HEAD
 declaration
     : types identifier ('=' NUMBER)? ';'
     | types identifier ('=' '"' ID '"')? ';'
@@ -32,6 +38,14 @@ NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
 STRING : [a-zA-Z_][a-zA-Z_][0-9]* ;
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
+=======
+
+NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
+ 
+ID : [a-zA-Z_][a-zA-Z_0-9]* ;
+
+SEMICOLON : ';' ;
+>>>>>>> test-antlr
 	
 /*
 local_variable_declaration
@@ -45,11 +59,19 @@ local_variable_type
 local_variable_declarator
 	: identifier ('=' local_variable_initializer)?
 	;
+<<<<<<< HEAD
 	
 local_variable_initializer
 	: expression
 	;
 	
+=======
+	
+local_variable_initializer
+	: expression
+	;
+	
+>>>>>>> test-antlr
 expression
 	: assignment
 	;

@@ -17,6 +17,7 @@ public class CBluntParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
+<<<<<<< HEAD
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, NUMBER=7, STRING=8, ID=9, 
 		DIGIT=10, WS=11;
 	public static final int
@@ -32,6 +33,20 @@ public class CBluntParser extends Parser {
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, "NUMBER", "STRING", "ID", "DIGIT", 
 		"WS"
+=======
+		NUMBER=1, ID=2, SEMICOLON=3, DIGIT=4, WS=5;
+	public static final int
+		RULE_start = 0, RULE_expression = 1, RULE_identifier = 2;
+	public static final String[] ruleNames = {
+		"start", "expression", "identifier"
+	};
+
+	private static final String[] _LITERAL_NAMES = {
+		null, null, null, "';'"
+	};
+	private static final String[] _SYMBOLIC_NAMES = {
+		null, "NUMBER", "ID", "SEMICOLON", "DIGIT", "WS"
+>>>>>>> test-antlr
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -98,7 +113,11 @@ public class CBluntParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
+<<<<<<< HEAD
 			setState(10);
+=======
+			setState(6);
+>>>>>>> test-antlr
 			expression();
 			}
 		}
@@ -114,11 +133,19 @@ public class CBluntParser extends Parser {
 	}
 
 	public static class ExpressionContext extends ParserRuleContext {
+<<<<<<< HEAD
 		public List<DeclarationContext> declaration() {
 			return getRuleContexts(DeclarationContext.class);
 		}
 		public DeclarationContext declaration(int i) {
 			return getRuleContext(DeclarationContext.class,i);
+=======
+		public List<IdentifierContext> identifier() {
+			return getRuleContexts(IdentifierContext.class);
+		}
+		public IdentifierContext identifier(int i) {
+			return getRuleContext(IdentifierContext.class,i);
+>>>>>>> test-antlr
 		}
 		public ExpressionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -137,6 +164,7 @@ public class CBluntParser extends Parser {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
+<<<<<<< HEAD
 				setState(12);
 				declaration();
 				setState(16);
@@ -153,13 +181,42 @@ public class CBluntParser extends Parser {
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
+=======
+				setState(8);
+				identifier();
+				setState(9);
+				match(SEMICOLON);
+				setState(11); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+				do {
+					{
+					{
+					setState(10);
+					identifier();
+					}
+					}
+					setState(13); 
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+				} while ( _la==ID );
+				setState(15);
+				match(SEMICOLON);
+>>>>>>> test-antlr
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
+<<<<<<< HEAD
 				setState(19);
 				declaration();
+=======
+				setState(17);
+				identifier();
+				setState(18);
+				match(SEMICOLON);
+>>>>>>> test-antlr
 				}
 				break;
 			}
@@ -204,6 +261,7 @@ public class CBluntParser extends Parser {
 		return _localctx;
 	}
 
+<<<<<<< HEAD
 	public static class DeclarationContext extends ParserRuleContext {
 		public TypesContext types() {
 			return getRuleContext(TypesContext.class,0);
@@ -341,6 +399,17 @@ public class CBluntParser extends Parser {
 		"\6\2#(\5\6\4\2$%\7\3\2\2%&\7\5\2\2&\'\7\13\2\2\')\7\5\2\2($\3\2\2\2()"+
 		"\3\2\2\2)*\3\2\2\2*+\7\4\2\2+-\3\2\2\2,\32\3\2\2\2,\"\3\2\2\2-\t\3\2\2"+
 		"\2./\t\2\2\2/\13\3\2\2\2\7\22\26\36(,";
+=======
+	public static final String _serializedATN =
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\7\33\4\2\t\2\4\3"+
+		"\t\3\4\4\t\4\3\2\3\2\3\3\3\3\3\3\6\3\16\n\3\r\3\16\3\17\3\3\3\3\3\3\3"+
+		"\3\3\3\5\3\27\n\3\3\4\3\4\3\4\2\2\5\2\4\6\2\2\2\31\2\b\3\2\2\2\4\26\3"+
+		"\2\2\2\6\30\3\2\2\2\b\t\5\4\3\2\t\3\3\2\2\2\n\13\5\6\4\2\13\r\7\5\2\2"+
+		"\f\16\5\6\4\2\r\f\3\2\2\2\16\17\3\2\2\2\17\r\3\2\2\2\17\20\3\2\2\2\20"+
+		"\21\3\2\2\2\21\22\7\5\2\2\22\27\3\2\2\2\23\24\5\6\4\2\24\25\7\5\2\2\25"+
+		"\27\3\2\2\2\26\n\3\2\2\2\26\23\3\2\2\2\27\5\3\2\2\2\30\31\7\4\2\2\31\7"+
+		"\3\2\2\2\4\17\26";
+>>>>>>> test-antlr
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

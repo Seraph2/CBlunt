@@ -35,8 +35,12 @@ public partial class CBluntLexer : Lexer {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
+<<<<<<< HEAD
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, NUMBER=7, STRING=8, ID=9, 
 		DIGIT=10, WS=11;
+=======
+		NUMBER=1, ID=2, SEMICOLON=3, DIGIT=4, WS=5;
+>>>>>>> test-antlr
 	public static string[] channelNames = {
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	};
@@ -46,8 +50,12 @@ public partial class CBluntLexer : Lexer {
 	};
 
 	public static readonly string[] ruleNames = {
+<<<<<<< HEAD
 		"T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "NUMBER", "STRING", "ID", 
 		"DIGIT", "WS"
+=======
+		"NUMBER", "ID", "SEMICOLON", "DIGIT", "WS"
+>>>>>>> test-antlr
 	};
 
 
@@ -61,11 +69,18 @@ public partial class CBluntLexer : Lexer {
 	}
 
 	private static readonly string[] _LiteralNames = {
+<<<<<<< HEAD
 		null, "'='", "';'", "'\"'", "'number'", "'string'", "'void'"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, null, null, null, null, null, null, "NUMBER", "STRING", "ID", "DIGIT", 
 		"WS"
+=======
+		null, null, null, "';'"
+	};
+	private static readonly string[] _SymbolicNames = {
+		null, "NUMBER", "ID", "SEMICOLON", "DIGIT", "WS"
+>>>>>>> test-antlr
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -96,6 +111,7 @@ public partial class CBluntLexer : Lexer {
 	}
 	private static char[] _serializedATN = {
 		'\x3', '\x608B', '\xA72A', '\x8133', '\xB9ED', '\x417C', '\x3BE7', '\x7786', 
+<<<<<<< HEAD
 		'\x5964', '\x2', '\r', ']', '\b', '\x1', '\x4', '\x2', '\t', '\x2', '\x4', 
 		'\x3', '\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', '\x5', 
 		'\x4', '\x6', '\t', '\x6', '\x4', '\a', '\t', '\a', '\x4', '\b', '\t', 
@@ -174,6 +190,55 @@ public partial class CBluntLexer : Lexer {
 		'\x2', '\x2', 'Z', '[', '\x3', '\x2', '\x2', '\x2', '[', '\\', '\b', '\f', 
 		'\x2', '\x2', '\\', '\x18', '\x3', '\x2', '\x2', '\x2', '\v', '\x2', '\x33', 
 		'\x38', '>', '@', 'G', 'N', 'T', 'Y', '\x3', '\b', '\x2', '\x2',
+=======
+		'\x5964', '\x2', '\a', '\x32', '\b', '\x1', '\x4', '\x2', '\t', '\x2', 
+		'\x4', '\x3', '\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', 
+		'\x5', '\x4', '\x6', '\t', '\x6', '\x3', '\x2', '\x5', '\x2', '\xF', '\n', 
+		'\x2', '\x3', '\x2', '\x6', '\x2', '\x12', '\n', '\x2', '\r', '\x2', '\xE', 
+		'\x2', '\x13', '\x3', '\x2', '\x3', '\x2', '\x6', '\x2', '\x18', '\n', 
+		'\x2', '\r', '\x2', '\xE', '\x2', '\x19', '\x5', '\x2', '\x1C', '\n', 
+		'\x2', '\x3', '\x3', '\x3', '\x3', '\a', '\x3', ' ', '\n', '\x3', '\f', 
+		'\x3', '\xE', '\x3', '#', '\v', '\x3', '\x3', '\x4', '\x3', '\x4', '\x3', 
+		'\x5', '\x6', '\x5', '(', '\n', '\x5', '\r', '\x5', '\xE', '\x5', ')', 
+		'\x3', '\x6', '\x6', '\x6', '-', '\n', '\x6', '\r', '\x6', '\xE', '\x6', 
+		'.', '\x3', '\x6', '\x3', '\x6', '\x2', '\x2', '\a', '\x3', '\x3', '\x5', 
+		'\x4', '\a', '\x5', '\t', '\x6', '\v', '\a', '\x3', '\x2', '\x6', '\x3', 
+		'\x2', '\x32', ';', '\x5', '\x2', '\x43', '\\', '\x61', '\x61', '\x63', 
+		'|', '\x6', '\x2', '\x32', ';', '\x43', '\\', '\x61', '\x61', '\x63', 
+		'|', '\x5', '\x2', '\v', '\f', '\xF', '\xF', '\"', '\"', '\x2', '\x38', 
+		'\x2', '\x3', '\x3', '\x2', '\x2', '\x2', '\x2', '\x5', '\x3', '\x2', 
+		'\x2', '\x2', '\x2', '\a', '\x3', '\x2', '\x2', '\x2', '\x2', '\t', '\x3', 
+		'\x2', '\x2', '\x2', '\x2', '\v', '\x3', '\x2', '\x2', '\x2', '\x3', '\xE', 
+		'\x3', '\x2', '\x2', '\x2', '\x5', '\x1D', '\x3', '\x2', '\x2', '\x2', 
+		'\a', '$', '\x3', '\x2', '\x2', '\x2', '\t', '\'', '\x3', '\x2', '\x2', 
+		'\x2', '\v', ',', '\x3', '\x2', '\x2', '\x2', '\r', '\xF', '\a', '/', 
+		'\x2', '\x2', '\xE', '\r', '\x3', '\x2', '\x2', '\x2', '\xE', '\xF', '\x3', 
+		'\x2', '\x2', '\x2', '\xF', '\x11', '\x3', '\x2', '\x2', '\x2', '\x10', 
+		'\x12', '\t', '\x2', '\x2', '\x2', '\x11', '\x10', '\x3', '\x2', '\x2', 
+		'\x2', '\x12', '\x13', '\x3', '\x2', '\x2', '\x2', '\x13', '\x11', '\x3', 
+		'\x2', '\x2', '\x2', '\x13', '\x14', '\x3', '\x2', '\x2', '\x2', '\x14', 
+		'\x1B', '\x3', '\x2', '\x2', '\x2', '\x15', '\x17', '\a', '\x30', '\x2', 
+		'\x2', '\x16', '\x18', '\t', '\x2', '\x2', '\x2', '\x17', '\x16', '\x3', 
+		'\x2', '\x2', '\x2', '\x18', '\x19', '\x3', '\x2', '\x2', '\x2', '\x19', 
+		'\x17', '\x3', '\x2', '\x2', '\x2', '\x19', '\x1A', '\x3', '\x2', '\x2', 
+		'\x2', '\x1A', '\x1C', '\x3', '\x2', '\x2', '\x2', '\x1B', '\x15', '\x3', 
+		'\x2', '\x2', '\x2', '\x1B', '\x1C', '\x3', '\x2', '\x2', '\x2', '\x1C', 
+		'\x4', '\x3', '\x2', '\x2', '\x2', '\x1D', '!', '\t', '\x3', '\x2', '\x2', 
+		'\x1E', ' ', '\t', '\x4', '\x2', '\x2', '\x1F', '\x1E', '\x3', '\x2', 
+		'\x2', '\x2', ' ', '#', '\x3', '\x2', '\x2', '\x2', '!', '\x1F', '\x3', 
+		'\x2', '\x2', '\x2', '!', '\"', '\x3', '\x2', '\x2', '\x2', '\"', '\x6', 
+		'\x3', '\x2', '\x2', '\x2', '#', '!', '\x3', '\x2', '\x2', '\x2', '$', 
+		'%', '\a', '=', '\x2', '\x2', '%', '\b', '\x3', '\x2', '\x2', '\x2', '&', 
+		'(', '\t', '\x2', '\x2', '\x2', '\'', '&', '\x3', '\x2', '\x2', '\x2', 
+		'(', ')', '\x3', '\x2', '\x2', '\x2', ')', '\'', '\x3', '\x2', '\x2', 
+		'\x2', ')', '*', '\x3', '\x2', '\x2', '\x2', '*', '\n', '\x3', '\x2', 
+		'\x2', '\x2', '+', '-', '\t', '\x5', '\x2', '\x2', ',', '+', '\x3', '\x2', 
+		'\x2', '\x2', '-', '.', '\x3', '\x2', '\x2', '\x2', '.', ',', '\x3', '\x2', 
+		'\x2', '\x2', '.', '/', '\x3', '\x2', '\x2', '\x2', '/', '\x30', '\x3', 
+		'\x2', '\x2', '\x2', '\x30', '\x31', '\b', '\x6', '\x2', '\x2', '\x31', 
+		'\f', '\x3', '\x2', '\x2', '\x2', '\n', '\x2', '\xE', '\x13', '\x19', 
+		'\x1B', '!', ')', '.', '\x3', '\b', '\x2', '\x2',
+>>>>>>> test-antlr
 	};
 
 	public static readonly ATN _ATN =

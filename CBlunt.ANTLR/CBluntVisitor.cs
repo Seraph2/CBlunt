@@ -15,7 +15,11 @@ namespace CBlunt.ANTLR
     {
         public override int VisitIdentifier([NotNull]ExpressionContext context)
         {
+<<<<<<< HEAD
             Console.WriteLine("VisitIdentifier");
+=======
+            Console.WriteLine("Identifier");
+>>>>>>> test-antlr
             return 0;
         }
     }
