@@ -4,25 +4,42 @@ grammar CBlunt;
 @lexer::header {#pragma warning disable 3021}
 	
 start
-    : expression
+    : 'Main' '(' ')' '{' statement '}' function*
     ;
+	
+function
+	: type ID '(' type ID (type ID ',')* ')' '{' statement '}'
 
-expression
-	: declaration (declaration)*
-    | declaration
+statement
+	: ((declaration | fcall)  ';')* \\Why use many words when few word do trick
 	;
+	
+fcall
+	: ID '(' Parameter (',' Parameter)* ')'
 
 declaration
-    : types ID ('=' NUMBER)? ';'
-    | types ID ('=' STRING)? ';'
-    | types 'array' ID ('=' '{' '}' ) 
+    : type ID ('=' expression)?
+    | type 'array' ID ('=' '{' (expression ',')* '}' )?
     ;
+	
+expression
+	: expression ('*' | '/') expression
+	| expression ('+' | '-') expression
+	| '(' expression ')'
+	| NUMBER
+	| STRING
+	;
 
-types
+type
     : 'number'
     | 'string'
+	| 'bool'
     | 'void'
     ;
+
+Parameter	: ID
+			| STRING
+			| NUMBER
 
 
 //https://stackoverflow.com/questions/29800106/how-do-i-escape-an-escape-character-with-antlr-4
