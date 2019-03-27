@@ -52,12 +52,12 @@ namespace CBlunt.ANTLR
             try
             {
                 //string input = GetInput();
-                string input = "void array a = \"test\\\"ABC123\";";
-
-                Console.WriteLine(input);
+                //string input = "void array a = \"test\\\"ABC123\";";
 
                 //string input = "void a;";
                 //string input = "void a = -123;";
+
+                string input = "void array array = 123;";
                 int result = EvaluateInput(input);
             }
             catch (Exception ex)
