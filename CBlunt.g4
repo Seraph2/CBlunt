@@ -13,8 +13,9 @@ expression
 	;
 
 declaration
-    : types ('array')? ID ('=' NUMBER)? ';'
-    | types ('array')? ID ('=' STRING)? ';'
+    : types ID ('=' NUMBER)? ';'
+    | types ID ('=' STRING)? ';'
+    | types 'array' ID ('=' '{' '}' ) 
     ;
 
 types

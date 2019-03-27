@@ -57,7 +57,9 @@ namespace CBlunt.ANTLR
                 //string input = "void a;";
                 //string input = "void a = -123;";
 
-                string input = "void array array = 123;";
+                //string input = "void array array = 123;";
+
+                string input = "void array arr = {}";
                 int result = EvaluateInput(input);
             }
             catch (Exception ex)
