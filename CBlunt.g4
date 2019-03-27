@@ -9,13 +9,20 @@ start
 	
 function
 	: type ID '(' type ID (type ID ',')* ')' '{' statement '}'
+	;
 
 statement
-	: ((declaration | fcall)  ';')* \\Why use many words when few word do trick
+	: (((declaration | fcall)  ';') | loop)* \\Why use many words when few word do trick
 	;
 	
 fcall
 	: ID '(' Parameter (',' Parameter)* ')'
+	;
+	
+loop
+	: ('if' | 'while') '(' statement ')'
+	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement '}' \\expression might need to be replaced
+	;
 
 declaration
     : type ID ('=' expression)?
@@ -29,6 +36,9 @@ expression
 	| NUMBER
 	| STRING
 	;
+	
+condition
+	: (expression ('==' | '>=' | '<=' | '>' | '<' | '!=' | '||' | '^^') expression)+
 
 type
     : 'number'
@@ -50,7 +60,6 @@ NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
 STRING : '"' (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* '"';
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
-
 
 DIGIT: [0-9]+;
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
