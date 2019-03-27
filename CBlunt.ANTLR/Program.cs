@@ -52,7 +52,7 @@ namespace CBlunt.ANTLR
             try
             {
                 //string input = GetInput();
-                string input = "void a = \"test\\\"ABC123\";";
+                string input = "void array a = \"test\\\"ABC123\";";
 
                 Console.WriteLine(input);
 
