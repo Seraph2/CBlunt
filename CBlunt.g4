@@ -14,7 +14,7 @@ expression
 
 declaration
     : types ID ('=' NUMBER)? ';'
-    | types ID ('=' '"' STRING '"')? ';'
+    | types ID ('=' STRING)? ';'
     ;
 
 types
@@ -23,9 +23,13 @@ types
     | 'void'
     ;
 
+
+//https://stackoverflow.com/questions/29800106/how-do-i-escape-an-escape-character-with-antlr-4
+
+
 NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
 
-//STRING : [a-zA-Z0-9]+;
+STRING : '"' ( '""' | ~["] )* '"';
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 
