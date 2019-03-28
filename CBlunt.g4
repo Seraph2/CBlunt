@@ -17,18 +17,18 @@ statements
 	;
 
 statement
-	: (declaration | functioncall) ';'
+	: (declaration | idcall) ';'
 	;
 	
 idcall
 	: ID
-	| ID '[' [0-9]+ ']'
+	| ID '[' DIGIT ']'
 	| ID '(' (parameter (',' parameter)*)? ')'
 	;
 
 iterative
 	: 'while' '(' condition ')' '{' statement '}'
-	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement '}' \\expression might need to be replaced
+	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement '}' //expression might need to be replaced
 	;
 	
 selective   

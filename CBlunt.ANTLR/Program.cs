@@ -53,7 +53,7 @@ namespace CBlunt.ANTLR
             {
                 //string input = "void Main() { tarwaeawrwer } int cool = \"123\"; void test(int a) { }";
 
-                string input = "void Main() { number a = 123; string b = \"hello\"; number array rawass = { 5 }; } void Method(void a, void b) { number testing = 12345; } void Method2() { Call(123,456,\"hello\"); }";
+                string input = "void Main() { number a = 123; string b = \"hello\"; number array rawass = { 5, 13, 25 }; } void Method(void a, void b) { number testing = 12345; } void Method2() { Call(123,456,\"hello\"); }";
                 int result = EvaluateInput(input);
             }
             catch (Exception ex)
