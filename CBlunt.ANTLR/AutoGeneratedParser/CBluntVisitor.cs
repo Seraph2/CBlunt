@@ -64,6 +64,12 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIdcall([NotNull] CBluntParser.IdcallContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.functioncall"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.iterative"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -81,6 +87,12 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDeclaration([NotNull] CBluntParser.DeclarationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.idedit"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIdedit([NotNull] CBluntParser.IdeditContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.expression"/>.
 	/// </summary>

@@ -17,35 +17,44 @@ statements
 	;
 
 statement
-	: (declaration | idcall) ';'
+	: (declaration | functioncall | idedit) ';' 
+	| iterative 
+	| selective
 	;
 	
 idcall
 	: ID
 	| ID '[' DIGIT ']'
-	| ID '(' (parameter (',' parameter)*)? ')'
 	;
+	
+functioncall
+	: ID '(' (parameter (',' parameter)*)? ')'
+	;
+	
 
 iterative
-	: 'while' '(' condition ')' '{' statement '}'
-	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement '}' //expression might need to be replaced
+	: 'while' '(' condition ')' '{' statements? '}'
+	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement* '}' //expression might need to be replaced
 	;
 	
 selective   
-	: 'if' '(' condition ')' '{' statement '}'
+	: 'if' '(' condition ')' '{' statements? '}'
 	;
 
 declaration
     : type ID ('=' expression)?
     | type 'array' ID ('=' '{' ( expression ',')* expression  '}' )?
     ;
+
+idedit      
+	: idcall '=' expression
+	;
 	
 expression
 	: expression ('*' | '/') expression
 	| expression ('+' | '-') expression
 	| '(' expression ')'
 	| parameter
-	| idcall
 	;
 	
 condition
@@ -64,7 +73,7 @@ type
     ;
 
 parameter
-	: ID
+	: idcall
 	| STRING
 	| NUMBER
 	;
