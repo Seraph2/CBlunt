@@ -51,15 +51,9 @@ namespace CBlunt.ANTLR
         {
             try
             {
-                //string input = GetInput();
-                //string input = "void array a = \"test\\\"ABC123\";";
+                //string input = "void Main() { tarwaeawrwer } int cool = \"123\"; void test(int a) { }";
 
-                //string input = "void a;";
-                //string input = "void a = -123;";
-
-                //string input = "void array array = 123;";
-
-                string input = "void array arr = {}";
+                string input = "void Main() { number a = 123; string b = \"hello\"; } void Method(void a, void b) { number testing = 12345; } void Method2() { Call(123,456,\"hello\"); }";
                 int result = EvaluateInput(input);
             }
             catch (Exception ex)
