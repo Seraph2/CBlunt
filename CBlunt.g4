@@ -8,20 +8,24 @@ start
     ;
 	
 function
-	: type ID '(' type ID (type ID ',')* ')' '{' statement '}'
+	: type ID '(' ((DATATYPE ID ',')* DATATYPE ID)? ')' '{' statement '}'
 	;
 
 statement
-	: (((declaration | fcall)  ';') | loop)* \\Why use many words when few word do trick
+	: (((declaration | fcall)  ';') | iterative | selective)* \\Why use many words when few word do trick
 	;
 	
 fcall
-	: ID '(' Parameter (',' Parameter)* ')'
+	: ID '(' (Parameter ',')* Parameter ')'
 	;
 	
-loop
-	: ('if' | 'while') '(' statement ')'
+iterative
+	: 'while' '(' condition ')' '{' statement '}'
 	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement '}' \\expression might need to be replaced
+	;
+	
+selective   
+	: 'if' '(' condition ')' '{' statement '}'
 	;
 
 declaration
@@ -33,12 +37,17 @@ expression
 	: expression ('*' | '/') expression
 	| expression ('+' | '-') expression
 	| '(' expression ')'
-	| NUMBER
-	| STRING
+	| Parameter
+	| fcall
 	;
 	
 condition
-	: (expression ('==' | '>=' | '<=' | '>' | '<' | '!=' | '||' | '^^') expression)+
+	: (expression logic expression | ID) (logic condition)*
+	;
+	
+logic
+	: ('==' | '>=' | '<=' | '>' | '<' | '!=' | '||' | '^^' | '&&')
+	;
 
 type
     : 'number'
