@@ -23,8 +23,7 @@ statement
 	;
 	
 idcall
-	: ID
-	| ID '[' DIGIT ']'
+	: ID ('[' DIGIT ']')?
 	;
 	
 functioncall
@@ -58,7 +57,7 @@ expression
 	;
 	
 condition
-	: (expression logic expression | ID) (logic condition)*
+	: '!'?(expression logic expression | ID) (logic condition)*
 	;
 	
 logic
@@ -73,9 +72,10 @@ type
     ;
 
 parameter
-	: idcall
-	| STRING
+	: STRING
 	| NUMBER
+	| idcall
+	| functioncall
 	;
 
 NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
