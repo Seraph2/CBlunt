@@ -20,8 +20,10 @@ statement
 	: (declaration | functioncall) ';'
 	;
 	
-functioncall
-	: ID '(' (parameter (',' parameter)*)? ')'
+idcall
+	: ID
+	| ID '[' [0-9]+ ']'
+	| ID '(' (parameter (',' parameter)*)? ')'
 	;
 
 iterative
@@ -35,15 +37,15 @@ selective
 
 declaration
     : type ID ('=' expression)?
-    | type 'array' ID ('=' '{' (expression ',')* '}' )?
+    | type 'array' ID ('=' '{' ( expression ',')* expression  '}' )?
     ;
 	
 expression
 	: expression ('*' | '/') expression
 	| expression ('+' | '-') expression
 	| '(' expression ')'
-	| Parameter
-	| fcall
+	| parameter
+	| idcall
 	;
 	
 condition
