@@ -4,21 +4,26 @@ grammar CBlunt;
 @lexer::header {#pragma warning disable 3021}
 	
 start
-    : 'Main' '(' ')' '{' statement '}' function*
+    : 'void' 'Main' '(' ')' '{' statements? '}' (function | declaration)* // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
     ;
 	
 function
-	: type ID '(' ((DATATYPE ID ',')* DATATYPE ID)? ')' '{' statement '}'
+	: type ID '(' (type ID (',' type ID)*)? ')' '{' statements? '}'
+	;
+
+statements
+	: statement statements
+	| statement
 	;
 
 statement
-	: (((declaration | fcall)  ';') | iterative | selective)* \\Why use many words when few word do trick
+	: (declaration | functioncall) ';'
 	;
 	
-fcall
-	: ID '(' (Parameter ',')* Parameter ')'
+functioncall
+	: ID '(' (parameter (',' parameter)*)? ')'
 	;
-	
+
 iterative
 	: 'while' '(' condition ')' '{' statement '}'
 	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement '}' \\expression might need to be replaced
@@ -56,13 +61,11 @@ type
     | 'void'
     ;
 
-Parameter	: ID
-			| STRING
-			| NUMBER
-
-
-//https://stackoverflow.com/questions/29800106/how-do-i-escape-an-escape-character-with-antlr-4
-
+parameter
+	: ID
+	| STRING
+	| NUMBER
+	;
 
 NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
 
