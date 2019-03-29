@@ -58,11 +58,29 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStatement([NotNull] CBluntParser.StatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.idcall"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIdcall([NotNull] CBluntParser.IdcallContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.functioncall"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.iterative"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIterative([NotNull] CBluntParser.IterativeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.selective"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSelective([NotNull] CBluntParser.SelectiveContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.declaration"/>.
 	/// </summary>
@@ -70,11 +88,29 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDeclaration([NotNull] CBluntParser.DeclarationContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.idedit"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIdedit([NotNull] CBluntParser.IdeditContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitExpression([NotNull] CBluntParser.ExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.condition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCondition([NotNull] CBluntParser.ConditionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.logic"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLogic([NotNull] CBluntParser.LogicContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.type"/>.
 	/// </summary>

@@ -17,24 +17,51 @@ statements
 	;
 
 statement
-	: (declaration | functioncall) ';'
+	: (declaration | functioncall | idedit) ';' 
+	| iterative 
+	| selective
+	;
+	
+idcall
+	: ID ('[' DIGIT ']')?
 	;
 	
 functioncall
 	: ID '(' (parameter (',' parameter)*)? ')'
 	;
+	
+
+iterative
+	: 'while' '(' condition ')' '{' statements? '}'
+	| 'for' '(' declaration ';' condition ';' expression ')' '{' statement* '}' //expression might need to be replaced
+	;
+	
+selective   
+	: 'if' '(' condition ')' '{' statements? '}'
+	;
 
 declaration
     : type ID ('=' expression)?
-    | type 'array' ID ('=' '{' (expression ',')* '}' )?
+    | type 'array' ID ('=' '{' ( expression ',')* expression  '}' )?
     ;
+
+idedit      
+	: idcall '=' expression
+	;
 	
 expression
 	: expression ('*' | '/') expression
 	| expression ('+' | '-') expression
 	| '(' expression ')'
-	| NUMBER
-	| STRING
+	| parameter
+	;
+	
+condition
+	: '!'?(expression logic expression | ID) (logic condition)*
+	;
+	
+logic
+	: ('==' | '>=' | '<=' | '>' | '<' | '!=' | '||' | '^^' | '&&')
 	;
 
 type
@@ -45,9 +72,10 @@ type
     ;
 
 parameter
-	: ID
-	| STRING
+	: STRING
 	| NUMBER
+	| idcall
+	| functioncall
 	;
 
 NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
@@ -55,7 +83,6 @@ NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
 STRING : '"' (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* '"';
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
-
 
 DIGIT: [0-9]+;
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
