@@ -27,10 +27,12 @@ iterative
 	;
 	
 selective   
-	: 'if' '(' condition ')' block else?
+	: 'if' '(' condition ')' block elsestmt?
 	;
-	
-else : 'else' (block | selective) ;
+
+elsestmt
+	: 'else' (block |selective)
+	;
 
 declaration
     : variabletype ID ('=' expression)?
@@ -54,18 +56,27 @@ logic
 	: ( expression relational expression )
 	;
 	
+
 relational
-	: '==' | '>=' | '<=' | '>' | '<' | '!='
+	: '=='
+	| '>='
+	| '<='
+	| '>'
+	| '<'
+	| '!='
 	;
-	
+
 conditional
-	: '||' | '&&' 
+	: '||' 
+	| '&&' 
+	| 'or'
+	| 'and'
 	;
 
 variabletype
-    : 'number '
-    | 'text '
-	| 'bool '
+    : 'number'
+    | 'text'
+	| 'bool'
     ;
 	
 functiontype
@@ -95,7 +106,13 @@ comment
 	: '/' '/' (~'\n')* '\n'
 	| '/*' (~'*/')* '*/'
 	;
-	
-equals : '=' | '+=' | '-=' | '*=' | '/=';
 
-WS : [ \r\n]+ -> skip ; // skip spaces, tabs, newlines
+equals
+	: '='
+	| '+='
+	| '-='
+	| '*='
+	| '/='
+	;
+
+WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
