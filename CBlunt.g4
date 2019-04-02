@@ -4,7 +4,7 @@ grammar CBlunt;
 @lexer::header {#pragma warning disable 3021}
 	
 start
-    : (function | declaration)* // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
+    : (function | declaration)+ // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
     ;
 	
 block : '{' statement* '}' ;
@@ -63,9 +63,9 @@ conditional
 	;
 
 variabletype
-    : 'number'
-    | 'text'
-	| 'bool'
+    : 'number '
+    | 'text '
+	| 'bool '
     ;
 	
 functiontype
@@ -98,4 +98,4 @@ comment
 	
 equals : '=' | '+=' | '-=' | '*=' | '/=';
 
-WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+WS : [ \r\n]+ -> skip ; // skip spaces, tabs, newlines
