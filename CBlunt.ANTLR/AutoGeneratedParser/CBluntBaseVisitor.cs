@@ -106,7 +106,7 @@ public partial class CBluntBaseVisitor<Result> : AbstractParseTreeVisitor<Result
 	/// <return>The visitor result.</return>
 	public virtual Result VisitSelective([NotNull] CBluntParser.SelectiveContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CBluntParser.else"/>.
+	/// Visit a parse tree produced by <see cref="CBluntParser.elsestmt"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -114,7 +114,7 @@ public partial class CBluntBaseVisitor<Result> : AbstractParseTreeVisitor<Result
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitElse([NotNull] CBluntParser.ElseContext context) { return VisitChildren(context); }
+	public virtual Result VisitElsestmt([NotNull] CBluntParser.ElsestmtContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.declaration"/>.
 	/// <para>

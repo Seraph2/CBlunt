@@ -4,10 +4,10 @@ grammar CBlunt;
 @lexer::header {#pragma warning disable 3021}
 	
 start
-    : (function | declaration)+ // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
+    : (comment| function | declaration)+ // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
     ;
 	
-block : '{' statement* '}' ;
+block : '{' (statement comment?)* '}' ;
 	
 function
 	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block

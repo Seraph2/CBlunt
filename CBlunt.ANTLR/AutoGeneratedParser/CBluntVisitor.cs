@@ -76,11 +76,11 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSelective([NotNull] CBluntParser.SelectiveContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CBluntParser.else"/>.
+	/// Visit a parse tree produced by <see cref="CBluntParser.elsestmt"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitElse([NotNull] CBluntParser.ElseContext context);
+	Result VisitElsestmt([NotNull] CBluntParser.ElsestmtContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.declaration"/>.
 	/// </summary>
