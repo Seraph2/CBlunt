@@ -10,7 +10,7 @@ start
 block : '{' statement* '}' ;
 	
 function
-	: functiontype ID '(' ((variabletype ID ',') variabletype ID)? ')' block
+	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block
 	;
 
 statement

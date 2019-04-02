@@ -53,7 +53,7 @@ namespace CBlunt.ANTLR
             {
                 //string input = "void Main() { tarwaeawrwer } int cool = \"123\"; void test(int a) { }";
 
-                string input = "number globa = 5; text globb = \" I ama god! \"; bool globc = true; bool globd = false; void Main() { number a = 123 + 2 - 2 * 2 / 2; text b = \"helo\";  if(1 > 5){ number d = 3 - 2; } while(a > b){ number ass = 3 * 2;} } void Method(number a, text b) { number testing = 12345 / 2; } void Method2() { Call(123,456,\"hello\"); }";
+                string input = "saiudoiusadoiusaoi number globa = 5; text globb = \" I ama god! \"; bool globc = true; bool globd = false; void Main() { number a = 123 + 2 - 2 * 2 / 2; text b = \"helo\";  if(1 > 5){ number d = 3 - 2; } while(a > b){ number ass = 3 * 2;} } void Method(number a, text b) { number testing = 12345 / 2; } void Method2() { Call(123,456,\"hello\"); }";
                 int result = EvaluateInput(input);
             }
             catch (Exception ex)
