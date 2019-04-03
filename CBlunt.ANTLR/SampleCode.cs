@@ -1,6 +1,3 @@
-test :)
-base
-c
 
 void Main()
 {

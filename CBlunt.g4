@@ -43,7 +43,7 @@ variableedit
 	;
 	
 expression
-	: expression (('+' | '-' | '*' | '/') expression)+
+	: expression (OPERATOR expression)+
 	| '(' expression ')'
 	| parameter
 	;
@@ -107,11 +107,7 @@ TRUTH : 'true' | 'false' ;
 DIGIT: [0-9]+;
 
 equals
-	: '='
-	| '+='
-	| '-='
-	| '*='
-	| '/='
+	: OPERATOR? '='
 	;
 
 LINECOMMENT
@@ -123,3 +119,10 @@ COMMENT
 	;
 
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+
+OPERATOR
+    : '+'
+    | '-'
+    | '*'
+    | '/'
+    ;
