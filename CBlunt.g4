@@ -4,17 +4,17 @@ grammar CBlunt;
 @lexer::header {#pragma warning disable 3021}
 	
 start
-    : (comment| function | declaration)+ // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
+    : (function | declaration)+ // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
     ;
 	
-block : '{' (statement comment?)* '}' ;
+block : '{' (statement)* '}' ;
 	
 function
 	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block
 	;
 
 statement
-	: (((declaration | functioncall | variableedit) ';') | iterative | selective) comment?
+	: (((declaration | functioncall | variableedit | functionreturn ) ';') | iterative | selective)
 	;
 	
 functioncall
@@ -91,6 +91,10 @@ parameter
 	| ID
 	| functioncall
 	;
+	
+functionreturn
+	: 'return' expression
+	;
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 
@@ -102,17 +106,20 @@ TRUTH : 'true' | 'false' ;
 
 DIGIT: [0-9]+;
 
-comment
-	: '/' '/' (~'\n')* '\n'
-	| '/*' (~'*/')* '*/'
-	;
-
 equals
 	: '='
 	| '+='
 	| '-='
 	| '*='
 	| '/='
+	;
+
+LINECOMMENT
+	: '//' ~[\r\n]* -> skip 
+	;
+
+COMMENT
+	: '/*' .*? '*/' -> skip
 	;
 
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines

@@ -142,11 +142,11 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitParameter([NotNull] CBluntParser.ParameterContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CBluntParser.comment"/>.
+	/// Visit a parse tree produced by <see cref="CBluntParser.functionreturn"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitComment([NotNull] CBluntParser.CommentContext context);
+	Result VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.equals"/>.
 	/// </summary>

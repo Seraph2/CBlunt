@@ -216,7 +216,7 @@ public partial class CBluntBaseVisitor<Result> : AbstractParseTreeVisitor<Result
 	/// <return>The visitor result.</return>
 	public virtual Result VisitParameter([NotNull] CBluntParser.ParameterContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CBluntParser.comment"/>.
+	/// Visit a parse tree produced by <see cref="CBluntParser.functionreturn"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -224,7 +224,7 @@ public partial class CBluntBaseVisitor<Result> : AbstractParseTreeVisitor<Result
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitComment([NotNull] CBluntParser.CommentContext context) { return VisitChildren(context); }
+	public virtual Result VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.equals"/>.
 	/// <para>
