@@ -20,6 +20,16 @@
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
+        },
+        {
+            "name": "antlr4-cblunt",
+            "type": "antlr-debug",
+            "request": "launch",
+            "input": "CBlunt.ANTLR/SampleCode.cs",
+            "grammar": "CBlunt.g4",
+            "startRule": "start",
+            "printParseTree" : true,
+            "visualParseTree": true
         }
     ]
 }
