@@ -55,7 +55,7 @@ namespace CBlunt.ANTLR
 
                 //string input = "void Main() { number a = 123; string b = \"hello\";  if(1 > 5){ number d = 3; } while(a > b){ number array rawass = { 5, 13, 25 }; rawass[2] = 3;} } void Method(void a, void b) { number testing = 12345; } void Method2() { Call(123,456,\"hello\"); }";
 
-                string input = File.ReadAllText("SampleCode.cs");
+                string input = File.ReadAllText("SampleCode.txt");
 
                 //Console.WriteLine(input);
 

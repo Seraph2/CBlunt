@@ -25,7 +25,7 @@
             "name": "antlr4-cblunt",
             "type": "antlr-debug",
             "request": "launch",
-            "input": "CBlunt.ANTLR/SampleCode.cs",
+            "input": "CBlunt.ANTLR/SampleCode.txt",
             "grammar": "CBlunt.g4",
             "startRule": "start",
             "printParseTree" : true,
