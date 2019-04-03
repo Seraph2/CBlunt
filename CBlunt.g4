@@ -31,7 +31,7 @@ selective
 	;
 
 elsestmt
-	: 'else' (block |selective)
+	: 'else' (block | selective)
 	;
 
 declaration
