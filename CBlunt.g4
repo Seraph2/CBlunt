@@ -23,7 +23,7 @@ functioncall
 	
 iterative
 	: 'while' '(' condition ')' block
-	| 'for' '(' declaration ';' condition ';' expression ')' block //expression might need to be replaced
+	| 'for' '(' (declaration | variableedit) ';' condition ';' expression ')' block //expression might need to be replaced
 	;
 	
 selective   
