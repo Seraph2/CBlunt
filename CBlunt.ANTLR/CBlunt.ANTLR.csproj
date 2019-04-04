@@ -11,12 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="SampleCode.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.7.2" />
   </ItemGroup>
 
