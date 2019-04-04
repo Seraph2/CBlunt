@@ -39,13 +39,11 @@ namespace CBlunt.ANTLR
 
         private static void DisplayResult(int result)
         {
-            Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
             Console.WriteLine($"Result: {result}");
         }
 
         private static void DisplayError(Exception ex)
         {
-            Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
             Console.WriteLine("Parser error:");
             Console.WriteLine(ex.Message);
         }
@@ -57,16 +55,7 @@ namespace CBlunt.ANTLR
             _watcher.EnableRaisingEvents = true;
             _watcher.IncludeSubdirectories = true;
 
-            string input = File.ReadAllText("SampleCode.txt");
-
-            try
-            {
-                int result = EvaluateInput(input);
-            }
-            catch (Exception e)
-            {
-                DisplayError(e);
-            }
+            LoadFile("SampleCode.txt");
 
             while (true)
             {
@@ -78,11 +67,18 @@ namespace CBlunt.ANTLR
         {
             Console.Clear(); // Clear console for simplifcation
 
-            string input = File.ReadAllText(e.FullPath); // Read text from the changed file
+            LoadFile(e.FullPath);
+        }
+
+        private static void LoadFile(string filePath)
+        {
+            string fileText = File.ReadAllText(filePath); // Read text from the changed file
+
+            Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
 
             try
             {
-                int result = EvaluateInput(input); // Give result if success, display error on failure to parse
+                int result = EvaluateInput(fileText); // Give result if success, display error on failure to parse
             }
             catch (Exception exception)
             {
