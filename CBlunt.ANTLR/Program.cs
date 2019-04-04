@@ -78,7 +78,7 @@ namespace CBlunt.ANTLR
 
             try
             {
-                int result = EvaluateInput(fileText); // Give result if success, display error on failure to parse
+                EvaluateInput(fileText); // Give result if success, display error on failure to parse
             }
             catch (Exception exception)
             {
