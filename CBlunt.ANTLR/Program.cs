@@ -51,7 +51,7 @@ namespace CBlunt.ANTLR
         public static void Main()
         {
             _watcher = new FileSystemWatcher("."); // Initialize watcher in current directory
-            _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
+            _watcher.Changed += new FileSystemEventHandler(Watcher_Changed);
             _watcher.EnableRaisingEvents = true;
             _watcher.IncludeSubdirectories = true;
 
@@ -63,7 +63,7 @@ namespace CBlunt.ANTLR
             }
         }
 
-        static void _watcher_Changed(object sender, FileSystemEventArgs e)
+        static void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
             Console.Clear(); // Clear console for simplifcation
 
