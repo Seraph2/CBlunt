@@ -50,14 +50,10 @@ namespace CBlunt.ANTLR
 
         public static void Main()
         {
-            _watcher = new FileSystemWatcher("."); // Initialize watcher in current directory
-            _watcher.Changed += new FileSystemEventHandler(Watcher_Changed);
-            _watcher.EnableRaisingEvents = true;
-            _watcher.IncludeSubdirectories = true;
-
+            InitializeFileSystemWatcher();
             LoadFile("SampleCode.txt");
 
-            while (true)
+            while (true) // Continually loop forever as the program should not stop
             {
                 Thread.Sleep(1); // Reduce CPU usage marginally
             }
@@ -65,25 +61,33 @@ namespace CBlunt.ANTLR
 
         static void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            Console.Clear(); // Clear console for simplifcation
-
             LoadFile(e.FullPath);
         }
 
         private static void LoadFile(string filePath)
         {
-            string fileText = File.ReadAllText(filePath); // Read text from the changed file
+            Console.Clear(); // Clear console for clean output
 
-            Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
+            Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")); // Write out timestamp
 
-            try
+            try // Try-catch is used because an exception can be thrown
             {
-                EvaluateInput(fileText); // Give result if success, display error on failure to parse
+                string fileText = File.ReadAllText(filePath); // Read text from the changed file
+
+                EvaluateInput(fileText); // Give result if success, display error when failed to parse
             }
             catch (Exception exception)
             {
                 DisplayError(exception);
             }
+        }
+
+        private static void InitializeFileSystemWatcher()
+        {
+            _watcher = new FileSystemWatcher("."); // Initialize watcher in current directory
+            _watcher.Changed += new FileSystemEventHandler(Watcher_Changed); // Add the method to execute when a file is changed
+            _watcher.EnableRaisingEvents = true;
+            _watcher.IncludeSubdirectories = true;
         }
     }
 }
