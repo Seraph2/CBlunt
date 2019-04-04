@@ -23,7 +23,7 @@ functioncall
 	
 iterative
 	: 'while' '(' condition ')' block
-	| 'for' '(' (declaration | variableedit) ';' condition ';' expression ')' block //expression might need to be replaced
+	| 'for' '(' (declaration | variableedit) ';' condition ';' variableedit ')' block //expression might need to be replaced
 	;
 	
 selective   
@@ -43,10 +43,12 @@ variableedit
 	;
 	
 expression
-	: expression (OPERATOR expression)+
-	| '(' expression ')'
+	: parameter calculation*
 	| parameter
 	;
+	
+calculation
+	: OPERATOR parameter | OPERATOR '(' parameter | OPERATOR parameter ')' ;
 	
 condition
 	: '!'? ( logic | ID ) (conditional condition)*

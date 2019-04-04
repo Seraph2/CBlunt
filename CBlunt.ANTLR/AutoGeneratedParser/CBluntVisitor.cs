@@ -100,6 +100,12 @@ public interface ICBluntVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExpression([NotNull] CBluntParser.ExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CBluntParser.calculation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCalculation([NotNull] CBluntParser.CalculationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CBluntParser.condition"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
