@@ -11,7 +11,13 @@ namespace CBlunt.ANTLR
     {
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
+#if DEBUG
             Console.WriteLine("VisitStart");
+#endif
+
+            Console.WriteLine(context.GetText());
+
+
             return 0;
         }
     }
