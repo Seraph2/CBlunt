@@ -9,6 +9,8 @@ namespace CBlunt.ANTLR
 {
     internal class CBluntVisitor : CBluntBaseVisitor<int>
     {
+        List<string> _variables = new List<string>();
+
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
 #if DEBUG
@@ -16,7 +18,6 @@ namespace CBlunt.ANTLR
 #endif
 
             Console.WriteLine(context.GetText());
-
 
             return 0;
         }
