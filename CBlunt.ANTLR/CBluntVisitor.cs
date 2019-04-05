@@ -9,15 +9,129 @@ namespace CBlunt.ANTLR
 {
     internal class CBluntVisitor : CBluntBaseVisitor<int>
     {
-        List<string> _variables = new List<string>();
+        private readonly Dictionary<string, string> _allowedVariableTypes = new Dictionary<string, string>
+        {
+            {"number", "COOL" } // Keep dis for now
+        };
 
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
 #if DEBUG
             Console.WriteLine("VisitStart");
 #endif
+            /// TODO: Find a more elegant way to do this
 
-            Console.WriteLine(context.GetText());
+            if (context.declaration(0) != null)
+                Visit(context.declaration(0));
+
+            if (context.function(0) != null)
+                Console.WriteLine("Function found!");
+
+            return 0;
+
+            //return Visit(context.declaration(0));
+        }
+
+        public override int VisitDeclaration([NotNull]CBluntParser.DeclarationContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitDeclaration");
+#endif
+            
+            var variableType = context.variabletype().GetText(); // No need to determine if the variabletype is correct because that has already been done by the parser
+
+            if (context.expression() == null) // No expression, create the variable from the variableType with no value and return, as to prevent parsing "expression"
+            {
+                
+
+
+
+                return 0;
+            }
+
+            var contextExpressionParameter = context.expression().parameter(); // Simplify retrieval of the expression's parameter. Note that this does not properly handle the grammar's way. I intentionally omit "calculation*" for testing purposes
+
+            string expectedParameterType = ""; /// TODO: Determine a better way to do this, potentially utilizing visitor more correctly as this might complicate things later
+
+            // Get the name of the expected parameter for potential error output
+            if (contextExpressionParameter.STRING() != null)
+                expectedParameterType = "text";
+            else
+            if (contextExpressionParameter.NUMBER() != null)
+                expectedParameterType = "number";
+            else
+            if (contextExpressionParameter.TRUTH() != null)
+                expectedParameterType = "truth";
+            else
+            if (contextExpressionParameter.ID() != null)
+                expectedParameterType = "id"; /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
+            else
+            if (contextExpressionParameter.functioncall() != null)
+            {
+                /// TODO: Add functioncall
+            }
+
+            if (expectedParameterType == "id") // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done and grammar error is fixed
+            {
+
+            }
+
+            switch (variableType) // Default case is omitted because it is not possible
+            {
+                case "text":
+                    if (contextExpressionParameter.STRING() == null)
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected text, got " + expectedParameterType);
+                    break;
+
+                case "number":
+                    if (contextExpressionParameter.NUMBER() == null) /// TODO: Potentially this can be simplified with visitors
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected number, got " + expectedParameterType);
+                    break;
+
+                case "bool":
+                    if (contextExpressionParameter.TRUTH() == null)
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected bool, got " + expectedParameterType);
+                    break;
+            }
+
+            return 0;
+        }
+
+        public override int VisitFunction([NotNull]CBluntParser.FunctionContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunction");
+#endif
+
+            return 0;
+        }
+
+        public override int VisitExpression([NotNull]CBluntParser.ExpressionContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitExpression");
+#endif
+            if (context.parameter() != null)
+                Visit(context.parameter());
+
+            /*if (context.calculation() != null)
+                Visit(context.calculation(0));*/
+
+            return 0;
+        }
+
+        public override int VisitParameter([NotNull]CBluntParser.ParameterContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitParameter");
+#endif
+
+            if (context.ID() != null)
+            {
+                
+            }
+
+            
 
             return 0;
         }
