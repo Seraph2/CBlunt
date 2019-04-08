@@ -11,7 +11,7 @@ namespace CBlunt.ANTLR
     {
         private readonly Dictionary<string, string> _allowedVariableTypes = new Dictionary<string, string>
         {
-            {"number", "COOL" } // Keep dis for now
+            { "number", "COOL" } // Keep dis for now
         };
 
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
@@ -19,17 +19,22 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitStart");
 #endif
+
             /// TODO: Find a more elegant way to do this
 
-            if (context.declaration(0) != null)
-                Visit(context.declaration(0));
-
-            if (context.function(0) != null)
-                Console.WriteLine("Function found!");
+            for (var i = 0; i < context.ChildCount; ++i)
+            {
+                if (context.declaration(i) != null)
+                {
+                    Visit(context.declaration(i));
+                    continue; // Skip declaration check
+                }
+                    
+                if (context.function(i) != null)
+                    Visit(context.function(i));
+            }
 
             return 0;
-
-            //return Visit(context.declaration(0));
         }
 
         public override int VisitDeclaration([NotNull]CBluntParser.DeclarationContext context)
@@ -37,7 +42,6 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitDeclaration");
 #endif
-            
             var variableType = context.variabletype().GetText(); // No need to determine if the variabletype is correct because that has already been done by the parser
 
             if (context.expression() == null) // No expression, create the variable from the variableType with no value and return, as to prevent parsing "expression"
@@ -102,6 +106,20 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitFunction");
 #endif
+            Console.WriteLine(context.GetText());
+
+            Visit(context.block());
+
+            return 0;
+        }
+
+        public override int VisitBlock([NotNull]CBluntParser.BlockContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunction");
+#endif
+            if (context.statement() != null)
+                Visit(context.statement(0));
 
             return 0;
         }
