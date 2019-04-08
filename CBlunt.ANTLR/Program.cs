@@ -22,7 +22,7 @@ namespace CBlunt.ANTLR
             return Console.ReadLine();
         }
 
-        private static int EvaluateInput(string input)
+        private static void EvaluateInput(string input)
         {
             CBluntLexer lexer = new CBluntLexer(new AntlrInputStream(input));
 
@@ -34,7 +34,11 @@ namespace CBlunt.ANTLR
             parser.RemoveErrorListeners();
             parser.AddErrorListener(new ThrowingErrorListener<IToken>());
 
-            return new CBluntVisitor().Visit(parser.start());
+            // Check semantics
+            new CBluntSemanticChecker().Visit(parser.start());
+
+            // Generate code
+            //new CBluntCodeGenerator().Visit(parser.start());
         }
 
         private static void DisplayResult(int result)
