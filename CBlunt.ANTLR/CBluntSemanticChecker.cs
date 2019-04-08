@@ -14,13 +14,11 @@ namespace CBlunt.ANTLR
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
 #if DEBUG
+            Console.WriteLine("Beginning semantic checking");
             Console.WriteLine("VisitStart");
 #endif
 
             /// TODO: Find a more elegant way to do this
-
-
-            Console.WriteLine(context.ChildCount);
 
             for (var i = 0; i < context.ChildCount; ++i)
             {
@@ -30,6 +28,10 @@ namespace CBlunt.ANTLR
                 if (context.function(i) != null)
                     Visit(context.function(i));
             }
+
+#if DEBUG
+            Console.WriteLine("Finished semantic checking");
+#endif
 
             return 0;
         }
