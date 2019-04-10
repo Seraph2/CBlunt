@@ -17,11 +17,6 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
-            /// TODO: Find a more elegant way to do this
-
-
-            Console.WriteLine(context.ChildCount);
-
             for (var i = 0; i < context.ChildCount; ++i)
             {
                 if (context.declaration(i) != null)
@@ -40,23 +35,24 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitDeclaration");
 #endif
 
-            Console.WriteLine(context.GetText());
-            var variableType = context.variabletype().GetText(); // No need to determine if the variabletype is correct because that has already been done by the parser
+            // Get the variabletype from text to a string variable. We do not need to determine if the variabletype is correct because that has already been done by the parser
+            var variableType = context.variabletype().GetText();
 
-            if (context.expression() == null) // No expression, create the variable from the variableType with no value and return, as to prevent parsing "expression"
+            // If no expression is found, create the variable from the variableType with no value (null) and return, as to prevent parsing "expression"
+            if (context.expression() == null) 
             {
-                
-
-
+				// Create variable with null value here
 
                 return 0;
             }
 
-            var contextExpressionParameter = context.expression().parameter(); // Simplify retrieval of the expression's parameter. Note that this does not properly handle the grammar's way. I intentionally omit "calculation*" for testing purposes
+			// Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
+            var contextExpressionParameter = context.expression().parameter();
 
-            string expectedParameterType = ""; /// TODO: Determine a better way to do this, potentially utilizing visitor more correctly as this might complicate things later
+			/// TODO: It may be necessary to determine a better way to do this, potentially utilizing visitor more correctly as this MAY complicate things later
+            string expectedParameterType = "";
 
-            // Get the name of the expected parameter for potential error output
+            // Get the name of the expected parameter for potential error output further below
             if (contextExpressionParameter.STRING() != null)
                 expectedParameterType = "text";
             else
@@ -70,19 +66,22 @@ namespace CBlunt.ANTLR
             }
             else
             if (contextExpressionParameter.ID() != null)
-                expectedParameterType = "id"; /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
+				 /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
+                expectedParameterType = "id";
             else
             if (contextExpressionParameter.functioncall() != null)
             {
                 /// TODO: Add functioncall
             }
 
-            if (expectedParameterType == "id") // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done and grammar error is fixed
+			 // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done
+            if (expectedParameterType == "id")
             {
 
             }
 
-            switch (variableType) // Default case is omitted because it is not possible
+			// Default case is omitted because it is not possible due to the parser
+            switch (variableType)
             {
                 case "text":
                     if (contextExpressionParameter.STRING() == null)
@@ -90,7 +89,7 @@ namespace CBlunt.ANTLR
                     break;
 
                 case "number":
-                    if (contextExpressionParameter.NUMBER() == null) /// TODO: Potentially this can be simplified with visitors
+                    if (contextExpressionParameter.NUMBER() == null)
                         Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected number, got " + expectedParameterType);
                     break;
 
@@ -120,7 +119,8 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitFunction");
 #endif
 
-            for (var i = 0; i < context.ChildCount; ++i) // Iterate over all potential statements in the block
+             // Iterate over all potential statements in the block. There can be 0 statements here
+            for (var i = 0; i < context.ChildCount; ++i)
             {
                 if (context.statement(i) != null)
                     Visit(context.statement(i));
@@ -153,8 +153,6 @@ namespace CBlunt.ANTLR
             {
                 
             }
-
-            
 
             return 0;
         }
