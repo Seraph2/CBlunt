@@ -57,10 +57,10 @@ namespace CBlunt.ANTLR
             InitializeFileSystemWatcher();
             LoadFile("SampleCode.txt");
 
-			 // Continually loop forever as the program should not stop
+             // Continually loop forever as the program should not stop
             while (true)
             {
-				// Reduce CPU usage marginally
+                // Reduce CPU usage marginally
                 Thread.Sleep(1);
             }
         }
@@ -72,19 +72,19 @@ namespace CBlunt.ANTLR
 
         private static void LoadFile(string filePath)
         {
-			// Clear console for clean output
+            // Clear console for clean output
             Console.Clear();
 
-			// Write out timestamp
+            // Write out timestamp
             Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
 
-			// Try-catch is used because an exception can be thrown
+            // Try-catch is used because an exception can be thrown
             try
             {
-				// Read text from the changed file
+                // Read text from the changed file
                 string fileText = File.ReadAllText(filePath);
 
-				// Give result if success, display error when failed to parse
+                // Give result if success, display error when failed to parse
                 EvaluateInput(fileText);
             }
             catch (Exception exception)
@@ -95,10 +95,10 @@ namespace CBlunt.ANTLR
 
         private static void InitializeFileSystemWatcher()
         {
-			 // Initialize watcher in current directory
+             // Initialize watcher in current directory
             _watcher = new FileSystemWatcher(".");
-			
-			 // Add the method to execute when a file is changed
+            
+             // Add the method to execute when a file is changed
             _watcher.Changed += new FileSystemEventHandler(Watcher_Changed);
             _watcher.EnableRaisingEvents = true;
             _watcher.IncludeSubdirectories = true;
