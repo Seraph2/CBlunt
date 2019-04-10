@@ -1,4 +1,6 @@
 //ass
+number a = "ass"
+
 void main(){
 	number a = 2;
 	text b = "ass";
