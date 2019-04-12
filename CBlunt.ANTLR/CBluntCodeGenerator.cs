@@ -41,15 +41,15 @@ namespace CBlunt.ANTLR
             // If no expression is found, create the variable from the variableType with no value (null) and return, as to prevent parsing "expression"
             if (context.expression() == null) 
             {
-				// Create variable with null value here
+                // Create variable with null value here
 
                 return 0;
             }
 
-			// Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
+            // Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
             var contextExpressionParameter = context.expression().parameter();
 
-			/// TODO: It may be necessary to determine a better way to do this, potentially utilizing visitor more correctly as this MAY complicate things later
+            /// TODO: It may be necessary to determine a better way to do this, potentially utilizing visitor more correctly as this MAY complicate things later
             string expectedParameterType = "";
 
             // Get the name of the expected parameter for potential error output further below
@@ -66,7 +66,7 @@ namespace CBlunt.ANTLR
             }
             else
             if (contextExpressionParameter.ID() != null)
-				 /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
+                 /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
                 expectedParameterType = "id";
             else
             if (contextExpressionParameter.functioncall() != null)
@@ -74,13 +74,13 @@ namespace CBlunt.ANTLR
                 /// TODO: Add functioncall
             }
 
-			 // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done
+             // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done
             if (expectedParameterType == "id")
             {
 
             }
 
-			// Default case is omitted because it is not possible due to the parser
+            // Default case is omitted because it is not possible due to the parser
             switch (variableType)
             {
                 case "text":
