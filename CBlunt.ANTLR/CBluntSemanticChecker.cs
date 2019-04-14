@@ -9,7 +9,9 @@ namespace CBlunt.ANTLR
 {
     class CBluntSemanticChecker : CBluntBaseVisitor<int>
     {
-        private readonly Dictionary<string, Dictionary<string, string>> _variableDictionary = new Dictionary<string, Dictionary<string, string>>();
+        /// TODO: Find a better name
+        private Dictionary<string, Dictionary<string, string>> _classLevelVariablesDictionary = new Dictionary<string, Dictionary<string, string>>();
+        private LinkedList<Dictionary<string, Dictionary<string, string>>> _scopeLevelLinkedList = new LinkedList<Dictionary<string, Dictionary<string, string>>>();
 
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
@@ -17,8 +19,6 @@ namespace CBlunt.ANTLR
             Console.WriteLine("Beginning semantic checking");
             Console.WriteLine("VisitStart");
 #endif
-
-            /// TODO: Find a more elegant way to do this
 
             for (var i = 0; i < context.ChildCount; ++i)
             {
@@ -41,9 +41,85 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitDeclaration");
 #endif
+            // Get the variable's type. We do not need to check if the variable's type is correct because that has already been done by the parser
+            var variableType = context.children[0].GetText();
 
-            // Get the variabletype from text to a string variable. We do not need to determine if the variabletype is correct because that has already been done by the parser
-            var variableType = context.variabletype().GetText();
+            // Get the variable's' name
+            var variableName = context.children[1].GetText();
+
+            // Get the variable's value if it exists. A context with 4 children is a declaration followed by an assignment
+            var variableValue = context.children.Count == 4 ? context.children[3].GetText() : null;
+
+            // Get the parent index of this visitor
+            var parentRuleIndex = context.Parent.RuleIndex;
+
+            // If the parent's rule is "start", the variable needs to be added to the class scope. Else we add it to the method's scope
+            if (parentRuleIndex == CBluntParser.RULE_start)
+            {
+                // Check whether the variable exists already in the class scope. Give an error if it exists
+                if (_classLevelVariablesDictionary.ContainsKey(variableName))
+                {
+                    Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " already exists");
+                    return 0;
+                }
+
+                // Add the new variable to the class level and initialize a dictionary to it
+                _classLevelVariablesDictionary.Add(variableName, new Dictionary<string, string>());
+
+                // Give the variable its properties
+                var variableProperties = _classLevelVariablesDictionary[variableName];
+
+                // Set the variable's type in the properties
+                variableProperties.Add("type", variableType);
+                
+                // The value can be null
+                variableProperties.Add("value", variableValue);
+            }
+            else
+            {
+                // Get the last node to iterate backwards over the linked list. Note that it is impossible for the linked list to be empty initially
+                var currNode = _scopeLevelLinkedList.Last;
+
+                // Variable for testing whether the variable was found in current or parent scope
+                var varExistsInCurrOrPrevScope = false;
+
+                // This loop will ALWAYS end, as it is certain there will exist at least 1 node, and a node will always have an end, aka. previous == null. Should there somehow not exist such a node (for debugging maybe), it will give an error
+                // We need to iterate over all previous scopes and see if the variable is declared as that is not allowed in C#
+                while (true)
+                {
+                    var scopeVariables = currNode.Value;
+
+                    // Stop the loop if the variable has been found in this scope or a parent scope
+                    if (scopeVariables.ContainsKey(variableName))
+                    {
+                        varExistsInCurrOrPrevScope = true;
+                        break;
+                    }
+
+                    if (currNode.Previous == null)
+                        break;
+                    else
+                        currNode = currNode.Previous;
+                }
+
+                // Check whether the variable was found
+                if (varExistsInCurrOrPrevScope)
+                {
+                    Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " already exists in current or parent scope");
+                    return 0;
+                }
+
+                // Add the new variable to the last linked list node, and initialize a dictionary to it
+                _scopeLevelLinkedList.Last.Value.Add(variableName, new Dictionary<string, string>());
+
+                var variableProperties = _scopeLevelLinkedList.Last.Value[variableName];
+
+                // Set the variable's type in the properties
+                variableProperties.Add("type", variableType);
+
+                // The value can be null
+                variableProperties.Add("value", variableValue);
+            }
 
             // If no expression is found, create the variable from the variableType with no value (null) and return, as to prevent parsing "expression"
             if (context.expression() == null) 
@@ -62,20 +138,20 @@ namespace CBlunt.ANTLR
             // Get the name of the expected parameter for potential error output further below
             if (contextExpressionParameter.STRING() != null)
                 expectedParameterType = "text";
-            else
+
             if (contextExpressionParameter.NUMBER() != null)
                 expectedParameterType = "number";
-            else
+
             if (contextExpressionParameter.TRUTH() != null)
             {
                 expectedParameterType = "truth";
                 Console.WriteLine("TRUTH matched!");
             }
-            else
+
             if (contextExpressionParameter.ID() != null)
                  /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
                 expectedParameterType = "id";
-            else
+
             if (contextExpressionParameter.functioncall() != null)
             {
                 /// TODO: Add functioncall
@@ -123,8 +199,11 @@ namespace CBlunt.ANTLR
         public override int VisitBlock([NotNull]CBluntParser.BlockContext context)
         {
 #if DEBUG
-            Console.WriteLine("VisitFunction");
+            Console.WriteLine("VisitBlock");
 #endif
+
+            // Create a new scope to the linked list
+            _scopeLevelLinkedList.AddLast(new Dictionary<string, Dictionary<string, string>>());
 
              // Iterate over all potential statements in the block. There can be 0 statements here
             for (var i = 0; i < context.ChildCount; ++i)
@@ -132,6 +211,8 @@ namespace CBlunt.ANTLR
                 if (context.statement(i) != null)
                     Visit(context.statement(i));
             }
+
+            _scopeLevelLinkedList.RemoveLast();
 
             return 0;
         }
