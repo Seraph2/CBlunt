@@ -8,7 +8,7 @@ start
     ;
 	
 block : '{' (statement)* '}' ;
-	
+
 function
 	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block
 	;
@@ -48,7 +48,7 @@ expression
 	;
 	
 calculation
-	: OPERATOR parameter | OPERATOR '(' parameter | OPERATOR parameter ')' ;
+	: operator parameter | operator '(' parameter | operator parameter ')' ;
 	
 condition
 	: '!'? ( logic | ID ) (conditional condition)*
@@ -89,7 +89,7 @@ functiontype
 parameter
 	: STRING
 	| NUMBER
-	| TRUTH
+	| truth
 	| ID
 	| functioncall
 	;
@@ -104,12 +104,15 @@ NUMBER : '-'?[0-9]+('.'[0-9]+)? ;
 
 STRING : '"' (~'"' | '\\''"')* '"';
 
-TRUTH : 'true' | 'false' ;
+truth
+	: 'true'
+	| 'false'
+	;
 
 DIGIT: [0-9]+;
 
 equals
-	: OPERATOR? '='
+	: operator? '='
 	;
 
 LINECOMMENT
@@ -122,7 +125,7 @@ COMMENT
 
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
 
-OPERATOR
+operator
     : '+'
     | '-'
     | '*'

@@ -44,7 +44,7 @@ namespace CBlunt.ANTLR
             // Get the variable's type. We do not need to check if the variable's type is correct because that has already been done by the parser
             var variableType = context.children[0].GetText();
 
-            // Get the variable's' name
+            // Get the variable's name
             var variableName = context.children[1].GetText();
 
             // Get the variable's value if it exists. A context with 4 children is a declaration followed by an assignment
@@ -87,19 +87,21 @@ namespace CBlunt.ANTLR
                 // We need to iterate over all previous scopes and see if the variable is declared as that is not allowed in C#
                 while (true)
                 {
+                    // Get the value (aka. dictionary) of the scope
                     var scopeVariables = currNode.Value;
 
-                    // Stop the loop if the variable has been found in this scope or a parent scope
+                    // Stop the loop if the variable has been found in the current scope
                     if (scopeVariables.ContainsKey(variableName))
                     {
                         varExistsInCurrOrPrevScope = true;
                         break;
                     }
 
+                    // If there exists no previous node, stop the loop
                     if (currNode.Previous == null)
                         break;
-                    else
-                        currNode = currNode.Previous;
+
+                    currNode = currNode.Previous;
                 }
 
                 // Check whether the variable was found
@@ -142,15 +144,16 @@ namespace CBlunt.ANTLR
             if (contextExpressionParameter.NUMBER() != null)
                 expectedParameterType = "number";
 
-            if (contextExpressionParameter.TRUTH() != null)
+            if (contextExpressionParameter.truth() != null)
             {
-                expectedParameterType = "truth";
-                Console.WriteLine("TRUTH matched!");
+                expectedParameterType = "bool";
             }
 
             if (contextExpressionParameter.ID() != null)
-                 /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
+            {
+                /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
                 expectedParameterType = "id";
+            }
 
             if (contextExpressionParameter.functioncall() != null)
             {
@@ -177,7 +180,7 @@ namespace CBlunt.ANTLR
                     break;
 
                 case "bool":
-                    if (contextExpressionParameter.TRUTH() == null)
+                    if (contextExpressionParameter.truth() == null)
                         Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected bool, got " + expectedParameterType);
                     break;
             }
