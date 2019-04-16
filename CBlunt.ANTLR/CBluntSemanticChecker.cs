@@ -81,7 +81,7 @@ namespace CBlunt.ANTLR
                     return 0;
                 }
 
-                // Add the new variable to the class level and initialize a dictionary to it
+                // Add the new variable to the class level and create variable properties for it
                 _classLevelVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
             }
             else
@@ -193,7 +193,65 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitFunction");
 #endif
 
+            // Create a new scope to the linked list
+            _scopeLevelLinkedList.AddLast(new Dictionary<string, VariableProperties>());
+
+
+            // Get the method's type
+            var methodType = context.children[0].GetText();
+
+            // Get the method's name
+            var methodName = context.children[1].GetText();
+
+
+            /// TODO: Check if method exists already which will have been done if it has been discovered earlier
+
+            // Create the properties for the method
+            MethodProperties methodProperties = new MethodProperties
+            {
+                // Set the type of the method
+                Type = methodType,
+
+                // Method has been declared
+                Declared = true,
+
+                // Method has also been discovered
+                Discovered = true,
+
+                // Create the parameter types list for parsing of its parameters
+                ParameterTypes = new List<string>()
+            };
+
+            // Check whether the method contains parameters. If so, retrieve their types
+            if (context.children.Count > 5)
+            {
+                var parameterObjects = context.children.Count - 5;
+
+                // Start from 3 as that is the first potential parameter. Addition-operator 2 on i to skip the comma
+                for (int i = 3; i < context.children.Count - 2; i += 2)
+                {
+                    var parameterType = context.children[i].GetText();
+                    var parameterName = context.children[++i].GetText();
+
+                    // Add the parameter type to the list of parameter types
+                    methodProperties.ParameterTypes.Add(parameterType);
+
+                    // Add the variable along with properties to the method scope
+                    _scopeLevelLinkedList.Last.Value.Add(parameterName, new VariableProperties(parameterType));
+                }
+            }
+
+            /// TODO: If method has already existed due to discovery nodes, now verify if discovery nodes were true
+
+            // Finally, add the method along with its properties to the corresponding dictionary. Whenever the method is encountered in potentially future code,
+            // it will be checked against semantically
+            _methodDictionary.Add(methodName, methodProperties);
+
+            // Visit the block of the function
             Visit(context.block());
+
+            // Remove the scope
+            _scopeLevelLinkedList.RemoveLast();
 
             return 0;
         }
@@ -204,17 +262,12 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitBlock");
 #endif
 
-            // Create a new scope to the linked list
-            _scopeLevelLinkedList.AddLast(new Dictionary<string, VariableProperties>());
-
              // Iterate over all potential statements in the block. There can be 0 statements here
             for (var i = 0; i < context.ChildCount; ++i)
             {
                 if (context.statement(i) != null)
                     Visit(context.statement(i));
             }
-
-            _scopeLevelLinkedList.RemoveLast();
 
             return 0;
         }
@@ -333,6 +386,7 @@ namespace CBlunt.ANTLR
 
             switch (operatorType)
             {
+                // Always allow default assignment
                 case "=":
                     break;
 
@@ -407,22 +461,22 @@ namespace CBlunt.ANTLR
     class MethodProperties
     {
         // The (return) type of the function
-        string Type { get; set; }
+        public string Type { get; set; }
 
-        // The list of parameters this method takes
-        List<string> ParameterTypes = new List<string>();
+        // The list of parameter types this method takes
+        public List<string> ParameterTypes = new List<string>();
 
         // Determines if the method has been used somewhere in code, eg: number a = Test(123);
-        bool Discovered { get; set; }
+        public bool Discovered { get; set; }
 
         // Determines whether there has been a declaration for the method
-        bool Declared { get; set; }
+        public bool Declared { get; set; }
 
         // A list of nodes that has discovered this function before it was properly declared
-        List<DiscoveryNode> DiscoveryNodes = new List<DiscoveryNode>();
+        public List<DiscoveryNode> DiscoveryNodes = new List<DiscoveryNode>();
 
         // A node signifying a discovery of the method. Once the method has been declared, all nodes will be iterated over from start to end to verify if they followed the rules of the method
-        class DiscoveryNode
+        public class DiscoveryNode
         {
             // The line the method was discovered on
             int Line { get; set; }
