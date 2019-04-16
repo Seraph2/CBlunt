@@ -1,27 +1,32 @@
 //ass
 number a = "ass"
 
-void main(){
-	number a = 2;
-	text b = "ass";
-	// This is a comment.
-	number d;
-	for(d  = 0; d < 10; d += 1){
-		/* Does something when a condition is true. */
-		while (a != 5) {
-			ass(d, b);
-			a += 1;
-		}
-	}
+void main()
+{
+    number a = 2;
+    text b = "ass";
+    // This is a comment.
+    number d;
+    for(d  = 0; d < 10; d += 1)
+    {
+        /* Does something when a condition is true. */
+        while (a != 5)
+        {
+            ass(d, b);
+            a += 1;
+        }
+    }
 }
 
-text ass(number a, text b){
-	bool c;
-	if(a > 3){
-		c = true;
-		///**/
-		/*//*/
-		return b;
-	}
-	return "Gae Bolg";
+text ass(number a, text b)
+{
+    bool c;
+    if(a > 3)
+    {
+        c = true;
+        ///**/
+        /*//*/
+        return b;
+    }
+    return "Gae Bolg";
 }
