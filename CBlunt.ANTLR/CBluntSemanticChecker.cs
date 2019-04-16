@@ -10,8 +10,9 @@ namespace CBlunt.ANTLR
     class CBluntSemanticChecker : CBluntBaseVisitor<int>
     {
         /// TODO: Find a better name
-        private Dictionary<string, Dictionary<string, string>> _classLevelVariablesDictionary = new Dictionary<string, Dictionary<string, string>>();
-        private LinkedList<Dictionary<string, Dictionary<string, string>>> _scopeLevelLinkedList = new LinkedList<Dictionary<string, Dictionary<string, string>>>();
+        private Dictionary<string, VariableProperties> _classLevelVariablesDictionary = new Dictionary<string, VariableProperties>();
+        private LinkedList<Dictionary<string, VariableProperties>> _scopeLevelLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
+        private Dictionary<string, MethodProperties> _methodDictionary = new Dictionary<string, MethodProperties>();
 
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
@@ -64,16 +65,7 @@ namespace CBlunt.ANTLR
                 }
 
                 // Add the new variable to the class level and initialize a dictionary to it
-                _classLevelVariablesDictionary.Add(variableName, new Dictionary<string, string>());
-
-                // Give the variable its properties
-                var variableProperties = _classLevelVariablesDictionary[variableName];
-
-                // Set the variable's type in the properties
-                variableProperties.Add("type", variableType);
-                
-                // The value can be null
-                variableProperties.Add("value", variableValue);
+                _classLevelVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
             }
             else
             {
@@ -112,15 +104,7 @@ namespace CBlunt.ANTLR
                 }
 
                 // Add the new variable to the last linked list node, and initialize a dictionary to it
-                _scopeLevelLinkedList.Last.Value.Add(variableName, new Dictionary<string, string>());
-
-                var variableProperties = _scopeLevelLinkedList.Last.Value[variableName];
-
-                // Set the variable's type in the properties
-                variableProperties.Add("type", variableType);
-
-                // The value can be null
-                variableProperties.Add("value", variableValue);
+                _scopeLevelLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
             }
 
             // If no expression is found, create the variable from the variableType with no value (null) and return, as to prevent parsing "expression"
@@ -206,7 +190,7 @@ namespace CBlunt.ANTLR
 #endif
 
             // Create a new scope to the linked list
-            _scopeLevelLinkedList.AddLast(new Dictionary<string, Dictionary<string, string>>());
+            _scopeLevelLinkedList.AddLast(new Dictionary<string, VariableProperties>());
 
              // Iterate over all potential statements in the block. There can be 0 statements here
             for (var i = 0; i < context.ChildCount; ++i)
@@ -246,6 +230,61 @@ namespace CBlunt.ANTLR
             }
 
             return 0;
+        }
+    }
+
+    class VariableProperties
+    {
+        string Value { get; set; }
+
+        // The type of the variable (number, text, bool etc.)
+        string Type { get; set; }
+
+        // Determine whether the variable has been initialized or not (aka null)
+        bool Initialized { get; set; }
+
+        public VariableProperties(string type, string value=null)
+        {
+            // Set the variable's type
+            Type = type;
+
+            // Set the variable's value
+            Value = value;
+
+            // If it is found that the variable is initialized with a value, set its initialization flag
+            if (value != null)
+                Initialized = true;
+        }
+    }
+
+    class MethodProperties
+    {
+        // The (return) type of the function
+        string Type { get; set; }
+
+        // The list of parameters this method takes
+        List<string> ParameterTypes = new List<string>();
+
+        // Determines if the method has been used somewhere in code, eg: number a = Test(123);
+        bool Discovered { get; set; }
+
+        // Determines whether there has been a declaration for the method
+        bool Declared { get; set; }
+
+        // A list of nodes that has discovered this function before it was properly declared
+        List<DiscoveryNode> DiscoveryNodes = new List<DiscoveryNode>();
+
+        // A node signifying a discovery of the method. Once the method has been declared, all nodes will be iterated over from start to end to verify if they followed the rules of the method
+        class DiscoveryNode
+        {
+            // The line the method was discovered on
+            int Line { get; set; }
+
+            // The type of the discovered method, if there exists one. This will be null if the method in code is not used to return a value
+            string Type { get; set; }
+
+            // The types of parameters th
+            List<string> ParameterTypes = new List<string>();
         }
     }
 }
