@@ -14,6 +14,11 @@ namespace CBlunt.ANTLR
         private LinkedList<Dictionary<string, VariableProperties>> _scopeLevelLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
         private Dictionary<string, MethodProperties> _methodDictionary = new Dictionary<string, MethodProperties>();
 
+        /*void SyntaxError(string err)
+        {
+            Console.WriteLine("Syntax error on line ")
+        }*/
+
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
         {
 #if DEBUG
@@ -21,13 +26,25 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
+            var declarationIter = 0;
+            var functionIter = 0;
+
+            /// TODO: Very hackfixy still. Rule: (function | declaration ';')+
             for (var i = 0; i < context.ChildCount; ++i)
             {
-                if (context.declaration(i) != null)
-                    Visit(context.declaration(i));
+                if (context.declaration(declarationIter) != null)
+                {
+                    Visit(context.declaration(declarationIter));
+                    ++declarationIter;
+                    continue;
+                }
                     
-                if (context.function(i) != null)
-                    Visit(context.function(i));
+                    
+                if (context.function(functionIter) != null)
+                {
+                    Visit(context.function(functionIter));
+                    ++functionIter;
+                }
             }
 
 #if DEBUG
@@ -129,9 +146,7 @@ namespace CBlunt.ANTLR
                 expectedParameterType = "number";
 
             if (contextExpressionParameter.truth() != null)
-            {
                 expectedParameterType = "bool";
-            }
 
             if (contextExpressionParameter.ID() != null)
             {
@@ -231,17 +246,149 @@ namespace CBlunt.ANTLR
 
             return 0;
         }
+
+        public override int VisitVariableedit([NotNull] CBluntParser.VariableeditContext context)
+        {
+            // The name of the variable
+            var variableName = context.children[0].GetText();
+
+            // The operator type (For example: = += /= so on)
+            var operatorType = context.children[1].GetText();
+
+            // The assignment value
+            var assignmentValue = context.children[2].GetText();
+
+
+            // Now we have to retrieve the properties of the variable to determine possible assignments
+
+            // First iterate over the current scope and all previous scopes
+            var currNode = _scopeLevelLinkedList.Last;
+            var variableExists = false;
+
+            // The properties of the variable we found
+            VariableProperties variableProperties = null;
+
+            while (true)
+            {
+                // Get the value (aka. dictionary) of the scope
+                var scopeVariables = currNode.Value;
+
+                // Stop the loop if the variable has been found in the current scope
+                if (scopeVariables.ContainsKey(variableName))
+                {
+                    variableProperties = scopeVariables[variableName];
+                    variableExists = true;
+                    break;
+                }
+
+                // If there exists no previous node, stop the loop
+                if (currNode.Previous == null)
+                    break;
+
+                currNode = currNode.Previous;
+            }
+
+            // If the variable was still not found, we check the class scope
+            if (!variableExists)
+            {
+                if (_classLevelVariablesDictionary.ContainsKey(variableName))
+                {
+                    variableProperties = _classLevelVariablesDictionary[variableName];
+                    variableExists = true;
+                }
+            }
+
+            // If the variable still does not exist, stop
+            if (!variableExists)
+            {
+                Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " cannot be assigned a value as it does not exist.");
+                return 0;
+            }
+
+            // Get the expected assignment value, aka the value we expect the variable to be assigned
+            var contextExpressionParameter = context.expression().parameter();
+            var assignmentType = "";
+
+            if (contextExpressionParameter.STRING() != null)
+                assignmentType = "text";
+
+            if (contextExpressionParameter.NUMBER() != null)
+                assignmentType = "number";
+
+            if (contextExpressionParameter.truth() != null)
+                assignmentType = "bool";
+
+            if (contextExpressionParameter.ID() != null)
+            {
+                /// TODO: Get the variable's type from current or parent scope, or class scope, and determine whether its type matches.
+                /// Do not cause any error here, simply set the expectedAssignmentValue and continue
+            }
+
+            if (contextExpressionParameter.functioncall() != null)
+            {
+                /// TODO: functioncall is on the list of tasks to do. It requires correct implementation of method discovery along with understanding its return-type.
+                /// This means that it won't really cause the error here, it will cause the (potential) error the moment the function is declared or the function is not found
+                /// Therefore, if the function is not declared yet, we can actually simply add a discovery node and return here.
+            }
+
+            switch (operatorType)
+            {
+                case "=":
+                    break;
+
+                case "+=":
+                    if (assignmentType != "number")
+                    {
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use addition assignment operator on a type " + assignmentType);
+                        return 0;
+                    }
+                    break;
+
+                case "-=":
+                    if (assignmentType != "number")
+                    {
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use subtraction assignment operator on a type " + assignmentType);
+                        return 0;
+                    }
+                    break;
+
+                case "*=":
+                    if (assignmentType != "number")
+                    {
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use multiplication assignment operator on a type " + assignmentType);
+                        return 0;
+                    }
+                    break;
+
+                case "/=":
+                    if (assignmentType != "number")
+                    {
+                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use division assignment operator on a type " + assignmentType);
+                        return 0;
+                    }
+                    break;
+            }
+
+            // Now test if the variable type is the assignment type
+            if (variableProperties.Type != assignmentType)
+            {
+                Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable " + variableName + " is of type " + variableProperties.Type + ", cannot assign it a value of type " + assignmentType);
+                return 0;
+            }
+
+            return base.VisitVariableedit(context);
+        }
     }
 
     class VariableProperties
     {
-        string Value { get; set; }
+        public string Value { get; set; }
 
         // The type of the variable (number, text, bool etc.)
-        string Type { get; set; }
+        public string Type { get; set; }
 
         // Determine whether the variable has been initialized or not (aka null)
-        bool Initialized { get; set; }
+        public bool Initialized { get; set; }
 
         public VariableProperties(string type, string value=null)
         {
