@@ -59,13 +59,13 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitDeclaration");
 #endif
             // Get the variable's type. We do not need to check if the variable's type is correct because that has already been done by the parser
-            var variableType = context.children[0].GetText();
+            var variableType = context.variabletype().GetText();
 
             // Get the variable's name
-            var variableName = context.children[1].GetText();
+            var variableName = context.ID().GetText();
 
             // Get the variable's value if it exists. A context with 4 children is a declaration followed by an assignment
-            var variableValue = context.children.Count == 4 ? context.children[3].GetText() : null;
+            var variableValue = context.expression() != null ? context.expression().GetText() : null;
 
             // Get the parent index of this visitor
             var parentRuleIndex = context.Parent.RuleIndex;
@@ -124,6 +124,102 @@ namespace CBlunt.ANTLR
                 /// TODO: Add functioncall. If the function is not declared yet, simply discover it. Set appropriate expected param type here if the method
                 /// is declared
                 /// Task: 17-04-2019
+
+                // Helper variables for accessing deeper visitors
+                var functionCall = contextExpressionParameter.functioncall();
+                var functionCallParameter = functionCall.parameter();
+
+                // The name of the method
+                var methodName = contextExpressionParameter.functioncall().ID().GetText();
+
+                // A list to store the passed parameters to the method, to either future compare against or simply store
+                var foundParameterTypes = new List<string>();
+
+                // Get the found parameters in the method
+                /*int iter = 0;
+                while (true)
+                {
+                    if (functionCallParameter[iter] == null)
+                        break;
+
+                    if (functionCallParameter[iter].STRING() != null)
+                    {
+                        foundParameterTypes.Add("text");
+                        ++iter;
+                        continue;
+                    }
+
+                    if (functionCallParameter[iter].NUMBER() != null)
+                    {
+                        foundParameterTypes.Add("number");
+                        ++iter;
+                        continue;
+                    }
+
+                    if (functionCallParameter[iter].truth() != null)
+                    {
+                        foundParameterTypes.Add("bool");
+                        ++iter;
+                        continue;
+                    }
+
+                    if (functionCallParameter[iter].ID() != null)
+                    {
+                        /// TODO: Get variable here
+                        ++iter;
+                        continue;
+                    }
+
+                    if (functionCallParameter[iter].functioncall() != null)
+                    {
+                        /// TODO: No recursion yet
+                        ++iter;
+                        continue;
+                    }
+                }*/
+
+
+                // Check if the method already has been declared or if it has been discovered
+                if (_methodDictionary.ContainsKey(methodName))
+                {
+                    var methodProperties = _methodDictionary[methodName];
+
+                    // Determine if the method has been declared or not. If it has been declared, test against the found values
+                    if (methodProperties.Declared)
+                    {
+
+                    }
+                    else
+                    {
+                        // Add a discovery 
+                    }
+
+                    for (int i = 3; i < functionCall.children.Count - 2; i += 2)
+                    {
+                        var parameterType = functionCall.children[i].GetText();
+
+                        Console.WriteLine(parameterType);
+
+                        // Add the parameter type to the list of parameter types
+                        methodProperties.ParameterTypes.Add(parameterType);
+                    }
+                }
+                else
+                {
+                    // Method was not found, this is not a declaration place so set it to discovered but not declared
+                    
+                    var methodProperties = new MethodProperties()
+                    {
+                        Discovered = true,
+                        Declared = false,
+
+                    };
+
+
+
+                }
+
+
             }
 
             /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
@@ -436,6 +532,8 @@ namespace CBlunt.ANTLR
                 Console.WriteLine("Handle FunctionCall with no return type on line " + context.Start.Line);
                 /// 17-04-2019
             }
+
+            
 
             return base.VisitFunctioncall(context);
         }
