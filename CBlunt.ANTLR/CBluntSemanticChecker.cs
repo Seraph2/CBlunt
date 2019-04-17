@@ -9,9 +9,8 @@ namespace CBlunt.ANTLR
 {
     class CBluntSemanticChecker : CBluntBaseVisitor<int>
     {
-        /// TODO: Find a better name
-        private Dictionary<string, VariableProperties> _classLevelVariablesDictionary = new Dictionary<string, VariableProperties>();
-        private LinkedList<Dictionary<string, VariableProperties>> _scopeLevelLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
+        private Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
+        private LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
         private Dictionary<string, MethodProperties> _methodDictionary = new Dictionary<string, MethodProperties>();
 
         /*void SyntaxError(string err)
@@ -71,66 +70,35 @@ namespace CBlunt.ANTLR
             // Get the parent index of this visitor
             var parentRuleIndex = context.Parent.RuleIndex;
 
-            // If the parent's rule is "start", the variable needs to be added to the class scope. Else we add it to the method's scope
+            // If the parent's rule is "start", the declared variable needs to be added to the class scope, otherwise we add it to the method's scope
             if (parentRuleIndex == CBluntParser.RULE_start)
             {
                 // Check whether the variable exists already in the class scope. Give an error if it exists
-                if (_classLevelVariablesDictionary.ContainsKey(variableName))
+                if (FindDeclaredVariableInClassScope(variableName))
                 {
                     Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " already exists");
                     return 0;
                 }
 
                 // Add the new variable to the class level and create variable properties for it
-                _classLevelVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
+                _classScopeVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
             }
             else
             {
-                // Get the last node to iterate backwards over the linked list. Note that it is impossible for the linked list to be empty initially
-                var currNode = _scopeLevelLinkedList.Last;
-
-                // Variable for testing whether the variable was found in current or parent scope
-                var varExistsInCurrOrPrevScope = false;
-
-                // This loop will ALWAYS end, as it is certain there will exist at least 1 node, and a node will always have an end, aka. previous == null. Should there somehow not exist such a node (for debugging maybe), it will give an error
-                // We need to iterate over all previous scopes and see if the variable is declared as that is not allowed in C#
-                while (true)
-                {
-                    // Get the value (aka. dictionary) of the scope
-                    var scopeVariables = currNode.Value;
-
-                    // Stop the loop if the variable has been found in the current scope
-                    if (scopeVariables.ContainsKey(variableName))
-                    {
-                        varExistsInCurrOrPrevScope = true;
-                        break;
-                    }
-
-                    // If there exists no previous node, stop the loop
-                    if (currNode.Previous == null)
-                        break;
-
-                    currNode = currNode.Previous;
-                }
-
-                // Check whether the variable was found
-                if (varExistsInCurrOrPrevScope)
+                // Check whether the variable was found in the method scope
+                if (FindDeclaredVariableInMethodScope(variableName))
                 {
                     Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " already exists in current or parent scope");
                     return 0;
                 }
 
                 // Add the new variable to the last linked list node, and initialize a dictionary to it
-                _scopeLevelLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
+                _methodScopeLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
             }
 
-            // If no expression is found, create the variable from the variableType with no value (null) and return, as to prevent parsing "expression"
-            if (context.expression() == null) 
-            {
-                // Create variable with null value here
-
+            // If no expression is found, simply return as the variable cannot be type-checked against
+            if (context.expression() == null)
                 return 0;
-            }
 
             // Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
             var contextExpressionParameter = context.expression().parameter();
@@ -149,20 +117,22 @@ namespace CBlunt.ANTLR
                 expectedParameterType = "bool";
 
             if (contextExpressionParameter.ID() != null)
-            {
-                /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
                 expectedParameterType = "id";
-            }
 
             if (contextExpressionParameter.functioncall() != null)
             {
-                /// TODO: Add functioncall
+                /// TODO: Add functioncall. If the function is not declared yet, simply discover it. Set appropriate expected param type here if the method
+                /// is declared
+                /// Task: 17-04-2019
             }
 
-             // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done
+            /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
+            // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done
             if (expectedParameterType == "id")
             {
 
+
+                return 0;
             }
 
             // Default case is omitted because it is not possible due to the parser
@@ -194,7 +164,7 @@ namespace CBlunt.ANTLR
 #endif
 
             // Create a new scope to the linked list
-            _scopeLevelLinkedList.AddLast(new Dictionary<string, VariableProperties>());
+            _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
 
 
             // Get the method's type
@@ -203,10 +173,7 @@ namespace CBlunt.ANTLR
             // Get the method's name
             var methodName = context.children[1].GetText();
 
-
-            /// TODO: Check if method exists already which will have been done if it has been discovered earlier
-
-            // Create the properties for the method
+            // Create the actual properties for the method
             MethodProperties methodProperties = new MethodProperties
             {
                 // Set the type of the method
@@ -218,11 +185,12 @@ namespace CBlunt.ANTLR
                 // Method has also been discovered
                 Discovered = true,
 
-                // Create the parameter types list for parsing of its parameters
+                // Create the parameter types list for parsing of the method's parameters
                 ParameterTypes = new List<string>()
             };
 
-            // Check whether the method contains parameters. If so, retrieve their types
+            // Check whether the method contains parameters. If so, add the parameter types to the methodProperties and add the variables
+            // to the main scope of the method
             if (context.children.Count > 5)
             {
                 var parameterObjects = context.children.Count - 5;
@@ -237,9 +205,13 @@ namespace CBlunt.ANTLR
                     methodProperties.ParameterTypes.Add(parameterType);
 
                     // Add the variable along with properties to the method scope
-                    _scopeLevelLinkedList.Last.Value.Add(parameterName, new VariableProperties(parameterType));
+                    _methodScopeLinkedList.Last.Value.Add(parameterName, new VariableProperties(parameterType));
                 }
             }
+
+
+            /// TODO: Check also if method exists already which will have been done if it has been discovered earlier
+            /// If so, do not override the dictionary, simply check the methodProperties against the discovered one
 
             /// TODO: If method has already existed due to discovery nodes, now verify if discovery nodes were true
 
@@ -251,7 +223,7 @@ namespace CBlunt.ANTLR
             Visit(context.block());
 
             // Remove the scope
-            _scopeLevelLinkedList.RemoveLast();
+            _methodScopeLinkedList.RemoveLast();
 
             return 0;
         }
@@ -302,6 +274,9 @@ namespace CBlunt.ANTLR
 
         public override int VisitVariableedit([NotNull] CBluntParser.VariableeditContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitVariableedit");
+#endif
             // The name of the variable
             var variableName = context.children[0].GetText();
 
@@ -315,12 +290,13 @@ namespace CBlunt.ANTLR
             // Now we have to retrieve the properties of the variable to determine possible assignments
 
             // First iterate over the current scope and all previous scopes
-            var currNode = _scopeLevelLinkedList.Last;
+            var currNode = _methodScopeLinkedList.Last;
             var variableExists = false;
 
             // The properties of the variable we found
             VariableProperties variableProperties = null;
 
+            // In order to edit a variable, we first need to check the method's scopes. If it was not found here, the class scope is checked
             while (true)
             {
                 // Get the value (aka. dictionary) of the scope
@@ -341,17 +317,17 @@ namespace CBlunt.ANTLR
                 currNode = currNode.Previous;
             }
 
-            // If the variable was still not found, we check the class scope
+            // If the variable was still not found after checking the method scope, we check the class scope
             if (!variableExists)
             {
-                if (_classLevelVariablesDictionary.ContainsKey(variableName))
+                if (_classScopeVariablesDictionary.ContainsKey(variableName))
                 {
-                    variableProperties = _classLevelVariablesDictionary[variableName];
+                    variableProperties = _classScopeVariablesDictionary[variableName];
                     variableExists = true;
                 }
             }
 
-            // If the variable still does not exist, stop
+            // If the variable still was not found, cause an error
             if (!variableExists)
             {
                 Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " cannot be assigned a value as it does not exist.");
@@ -382,6 +358,7 @@ namespace CBlunt.ANTLR
                 /// TODO: functioncall is on the list of tasks to do. It requires correct implementation of method discovery along with understanding its return-type.
                 /// This means that it won't really cause the error here, it will cause the (potential) error the moment the function is declared or the function is not found
                 /// Therefore, if the function is not declared yet, we can actually simply add a discovery node and return here.
+                /// 17-04-2019
             }
 
             switch (operatorType)
@@ -423,17 +400,99 @@ namespace CBlunt.ANTLR
                     break;
             }
 
-            // Now test if the variable type is the assignment type
+            // Now test if this variable's type is the type it tries to assign
             if (variableProperties.Type != assignmentType)
             {
                 Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable " + variableName + " is of type " + variableProperties.Type + ", cannot assign it a value of type " + assignmentType);
                 return 0;
             }
 
+            // Finally, set the new value of the variable. This is set out of sheer principle
+            variableProperties.Value = assignmentValue;
+
             return base.VisitVariableedit(context);
+        }
+
+        public override int VisitStatement([NotNull] CBluntParser.StatementContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitStatement");
+#endif
+            /// TODO: Iterate as the rule requires it
+            //Visit(context.functioncall());
+
+            return base.VisitStatement(context);
+        }
+
+        public override int VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunctioncall");
+#endif
+            // If the parent is a statement, and the method has not been declared yet, add a discoverynode with NO return type (aka null), as it is 
+            // impossible to return anything on a simple function call
+            if (context.Parent.RuleIndex == CBluntParser.RULE_statement)
+            {
+                Console.WriteLine("Handle FunctionCall with no return type on line " + context.Start.Line);
+                /// 17-04-2019
+            }
+
+            return base.VisitFunctioncall(context);
+        }
+
+
+
+        /*
+         * A helper metohod for checking if a method is declared in class scope
+         */
+        bool FindDeclaredVariableInClassScope(string variableName)
+        {
+            return _classScopeVariablesDictionary.ContainsKey(variableName);
+        }
+
+        /*
+         * A method for simplifying finding declared variables in the scope of a method (skipping class scope)
+         */
+        bool FindDeclaredVariableInMethodScope(string variableName)
+        {
+            // Get the last node to iterate backwards over the linked list. Note that it is impossible for the linked list to be empty initially
+            var currNode = _methodScopeLinkedList.Last;
+
+            // Variable for testing whether the variable was found in current or parent scope
+            var variableExists = false;
+
+            // This loop will ALWAYS end, as it is certain there will exist at least 1 node, and a node will always have an end, aka. previous == null. Should there somehow not exist such a node (for debugging maybe), it will give an error
+            // We need to iterate over all previous scopes and see if the variable is declared as that is not allowed in C#
+            while (true)
+            {
+                // Get the value (aka. dictionary) of the scope
+                var scopeVariables = currNode.Value;
+
+                // Stop the loop if the variable has been found in the current scope
+                if (scopeVariables.ContainsKey(variableName))
+                {
+                    variableExists = true;
+                    break;
+                }
+
+                // If there exists no previous node, stop the loop
+                if (currNode.Previous == null)
+                    break;
+
+                currNode = currNode.Previous;
+            }
+
+            // If variable was not found, return false
+            if (!variableExists)
+                return false;
+
+            return true;
         }
     }
 
+    /*
+     * Store for a variable's properties
+     */
     class VariableProperties
     {
         public string Value { get; set; }
@@ -458,6 +517,9 @@ namespace CBlunt.ANTLR
         }
     }
 
+    /*
+    * Store for a method's properties
+    */
     class MethodProperties
     {
         // The (return) type of the function
