@@ -483,10 +483,7 @@ namespace CBlunt.ANTLR
             }
 
             // If variable was not found, return false
-            if (!variableExists)
-                return false;
-
-            return true;
+            return variableExists;
         }
     }
 
