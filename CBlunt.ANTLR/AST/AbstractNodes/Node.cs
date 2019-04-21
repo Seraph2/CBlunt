@@ -1,7 +1,6 @@
-namespace CBlunt.ANTLR.AST
+namespace CBlunt.ANTLR.AST.AbstractNodes
 {
     public abstract class Node
     {
-        
     }
 }
