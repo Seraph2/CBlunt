@@ -187,11 +187,11 @@ namespace CBlunt.ANTLR
                     // Determine if the method has been declared or not. If it has been declared, test against the found values
                     if (methodProperties.Declared)
                     {
-
+                        // Verify against existing properties
                     }
                     else
                     {
-                        // Add a discovery 
+                        // Add a discovery node
                     }
 
                     for (int i = 3; i < functionCall.children.Count - 2; i += 2)
@@ -598,6 +598,7 @@ namespace CBlunt.ANTLR
         // Determine whether the variable has been initialized or not (aka null)
         public bool Initialized { get; set; }
 
+        // If not specified, the value of the variable is null
         public VariableProperties(string type, string value=null)
         {
             // Set the variable's type

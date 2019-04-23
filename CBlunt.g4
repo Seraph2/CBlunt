@@ -14,7 +14,7 @@ function
 	;
 
 statement
-	: (((declaration | functioncall | variableedit | functionreturn ) ';') | iterative | selective)
+	: (((declaration | functioncall | variableedit | functionreturn) ';') | iterative | selective)
 	;
 	
 functioncall
@@ -48,14 +48,16 @@ expression
 	;
 	
 calculation
-	: operator parameter | operator '(' parameter | operator parameter ')' ;
+	: operator parameter
+	| operator '(' expression ')'
+	;
 	
 condition
-	: '!'? ( logic | ID ) (conditional condition)*
+	: '!'? (logic | ID) (conditional condition)*
 	;
 	
 logic
-	: ( expression relational expression )
+	: (expression relational expression)
 	;
 	
 
