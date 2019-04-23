@@ -14,17 +14,19 @@ namespace CBlunt.ANTLR
         private LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
         private Dictionary<string, MethodProperties> _methodDictionary = new Dictionary<string, MethodProperties>();
 
-        void SyntaxError(object err)
+        void SyntaxError(object context, string err)
         {
-            var t = err.GetType();
+            var errLine = (int)GetPropertyValue(GetPropertyValue(context, "Start"), "Line");
 
-            var prop = t.GetProperty("Start");
-            var prop2 = prop.PropertyType.GetProperty("Line");
+            Console.WriteLine("Syntax error on line " + errLine + "! " + err);
+        }
 
-            prop2.GetValue(err, null);
+        public object GetPropertyValue(object obj, string propertyName)
+        {
+            var objType = obj.GetType();
+            var prop = objType.GetProperty(propertyName);
 
-
-            Console.WriteLine("Syntax error on line " + 123);
+            return prop.GetValue(obj, null);
         }
 
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
@@ -244,9 +246,8 @@ namespace CBlunt.ANTLR
             switch (variableType)
             {
                 case "text":
-                    SyntaxError(context);
                     if (contextExpressionParameter.STRING() == null)
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected text, got " + expectedParameterType);
+                        SyntaxError(context, "Expected text, got " + expectedParameterType);
                     break;
 
                 case "number":
