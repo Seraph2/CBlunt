@@ -24,7 +24,7 @@ namespace CBlunt.ANTLR
             prop2.GetValue(err, null);
 
 
-            Console.WriteLine("Syntax error on line " + errorLine);*/
+            Console.WriteLine("Syntax error on line " + 123);
         }
 
         public override int VisitStart([NotNull]CBluntParser.StartContext context)
