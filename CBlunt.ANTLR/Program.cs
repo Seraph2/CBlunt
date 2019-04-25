@@ -16,16 +16,12 @@ namespace CBlunt.ANTLR
     {
         private static FileSystemWatcher _watcher;
 
-        private static string GetInput()
+        private static CBluntParser CreateParser(string input)
         {
-            Console.Write("Enter a value to evaluate: ");
-            return Console.ReadLine();
-        }
-
-        private static void EvaluateInput(string input)
-        {
+            // Create Lexer
             CBluntLexer lexer = new CBluntLexer(new AntlrInputStream(input));
 
+            // Remove default error listener, add our own
             lexer.RemoveErrorListeners();
             lexer.AddErrorListener(new ThrowingErrorListener<int>());
 
@@ -34,16 +30,31 @@ namespace CBlunt.ANTLR
             parser.RemoveErrorListeners();
             parser.AddErrorListener(new ThrowingErrorListener<IToken>());
 
-            // Check semantics
-            new CBluntSemanticChecker().Visit(parser.start());
-
-            // Generate code
-            //new CBluntCodeGenerator().Visit(parser.start());
+            return parser;
         }
 
-        private static void DisplayResult(int result)
+        private static void GenerateSymbolTable(string input)
         {
-            Console.WriteLine($"Result: {result}");
+            var parser = CreateParser(input);
+
+            // Generate symbol table
+            new CBluntSymbolTableGenerator().Visit(parser.start());
+        }
+
+        private static void CheckSemantics(string input)
+        {
+            var parser = CreateParser(input);
+
+            // Check semantics
+            new CBluntSemanticChecker().Visit(parser.start());
+        }
+
+        private static void GenerateCode(string input)
+        {
+            var parser = CreateParser(input);
+
+            // Generate code
+            new CBluntCodeGenerator().Visit(parser.start());
         }
 
         private static void DisplayError(Exception ex)
@@ -57,7 +68,7 @@ namespace CBlunt.ANTLR
             InitializeFileSystemWatcher();
             LoadFile("SampleCode.txt");
 
-             // Continually loop forever as the program should not stop
+             // Continually loop forever to keep the program (and watcher) alive
             while (true)
             {
                 // Reduce CPU usage marginally
@@ -85,7 +96,9 @@ namespace CBlunt.ANTLR
                 string fileText = File.ReadAllText(filePath);
 
                 // Give result if success, display error when failed to parse
-                EvaluateInput(fileText);
+                GenerateSymbolTable(fileText);
+                //CheckSemantics(fileText);
+                //GenerateCode(fileText);
             }
             catch (Exception exception)
             {
