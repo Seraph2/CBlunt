@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace CBlunt.ANTLR
 {
-    class CBluntSemanticChecker : CBluntBaseVisitor<int>
+    class SemanticChecker : CBluntBaseVisitor<int>
     {
         private Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
         private LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();

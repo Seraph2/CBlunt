@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace CBlunt.ANTLR
 {
-    class CBluntSymbolTableGenerator : CBluntBaseVisitor<int>
+    class SymbolTableGenerator : CBluntBaseVisitor<int>
     {
         public override int VisitStart([NotNull] CBluntParser.StartContext context)
         {
