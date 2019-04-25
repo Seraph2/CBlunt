@@ -17,10 +17,17 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
+
+
 #if DEBUG
             Console.WriteLine("Finished symbol table generation");
 #endif
             return 0;
+        }
+
+        public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
+        {
+            return base.VisitBlock(context);
         }
     }
 
@@ -33,6 +40,7 @@ namespace CBlunt.ANTLR
         public string Type { get; set; }
 
         // The value of the variable (true, false, 0, "test" etc.)
+        /// REMOVE
         public string Value { get; set; }
 
         // Determine whether the variable has been initialized or not (aka null)
@@ -47,9 +55,11 @@ namespace CBlunt.ANTLR
             Type = type;
 
             // Set the variable's value
+            /// REMOVE
             Value = value;
 
             // If it is found that the variable is initialized with a value, set its initialization flag
+            /// REMOVE
             if (value != null)
                 Initialized = true;
         }
@@ -67,15 +77,19 @@ namespace CBlunt.ANTLR
         public List<string> ParameterTypes = new List<string>();
 
         // Determines if the method has been used somewhere in code, eg: number a = Test(123);
+        /// REMOVE
         public bool Discovered { get; set; }
 
         // Determines whether there has been a declaration for the method
+        /// REMOVE
         public bool Declared { get; set; }
 
         // A list of nodes that has discovered this function before it was properly declared
+        /// REMOVE
         public List<DiscoveryNode> DiscoveryNodes = new List<DiscoveryNode>();
 
         // A node signifying a discovery of the method. Once the method has been declared, all nodes will be iterated over from start to end to verify if they followed the rules of the method
+        /// REMOVE
         public class DiscoveryNode
         {
             // The line the method was discovered on

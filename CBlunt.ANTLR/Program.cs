@@ -95,7 +95,7 @@ namespace CBlunt.ANTLR
                 // Read text from the changed file
                 string fileText = File.ReadAllText(filePath);
 
-                // Give result if success, display error when failed to parse
+                // Begin compiler
                 GenerateSymbolTable(fileText);
                 //CheckSemantics(fileText);
                 //GenerateCode(fileText);
