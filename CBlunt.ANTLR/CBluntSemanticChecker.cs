@@ -87,7 +87,7 @@ namespace CBlunt.ANTLR
                 // Check whether the variable exists already in the class scope. Give an error if it exists
                 if (FindDeclaredVariableInClassScope(variableName))
                 {
-                    Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " already exists");
+                    SyntaxError(context, "Variable with name " + variableName + " already exists");
                     return 0;
                 }
 
@@ -99,7 +99,7 @@ namespace CBlunt.ANTLR
                 // Check whether the variable was found in the method scope
                 if (FindDeclaredVariableInMethodScope(variableName))
                 {
-                    Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " already exists in current or parent scope");
+                    SyntaxError(context, "Variable with name " + variableName + " already exists in current or parent scope");
                     return 0;
                 }
 
@@ -252,12 +252,12 @@ namespace CBlunt.ANTLR
 
                 case "number":
                     if (contextExpressionParameter.NUMBER() == null)
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected number, got " + expectedParameterType);
+                        SyntaxError(context, "Expected number, got " + expectedParameterType);
                     break;
 
                 case "bool":
                     if (contextExpressionParameter.truth() == null)
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected bool, got " + expectedParameterType);
+                        SyntaxError(context, "Expected bool, got " + expectedParameterType);
                     break;
             }
 
@@ -437,7 +437,7 @@ namespace CBlunt.ANTLR
             // If the variable still was not found, cause an error
             if (!variableExists)
             {
-                Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable with name " + variableName + " cannot be assigned a value as it does not exist.");
+                SyntaxError(context, "Variable with name " + variableName + " cannot be assigned a value as it does not exist.");
                 return 0;
             }
 
@@ -477,7 +477,7 @@ namespace CBlunt.ANTLR
                 case "+=":
                     if (assignmentType != "number")
                     {
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use addition assignment operator on a type " + assignmentType);
+                        SyntaxError(context, "Cannot use addition assignment operator on a type " + assignmentType);
                         return 0;
                     }
                     break;
@@ -485,7 +485,7 @@ namespace CBlunt.ANTLR
                 case "-=":
                     if (assignmentType != "number")
                     {
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use subtraction assignment operator on a type " + assignmentType);
+                        SyntaxError(context, "Cannot use subtraction assignment operator on a type " + assignmentType);
                         return 0;
                     }
                     break;
@@ -493,7 +493,7 @@ namespace CBlunt.ANTLR
                 case "*=":
                     if (assignmentType != "number")
                     {
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use multiplication assignment operator on a type " + assignmentType);
+                        SyntaxError(context, "Cannot use multiplication assignment operator on a type " + assignmentType);
                         return 0;
                     }
                     break;
@@ -501,7 +501,7 @@ namespace CBlunt.ANTLR
                 case "/=":
                     if (assignmentType != "number")
                     {
-                        Console.WriteLine("Syntax error on line " + context.Start.Line + "! Cannot use division assignment operator on a type " + assignmentType);
+                        SyntaxError(context, "Cannot use division assignment operator on a type " + assignmentType);
                         return 0;
                     }
                     break;
@@ -510,7 +510,7 @@ namespace CBlunt.ANTLR
             // Now test if this variable's type is the type it tries to assign
             if (variableProperties.Type != assignmentType)
             {
-                Console.WriteLine("Syntax error on line " + context.Start.Line + "! Variable " + variableName + " is of type " + variableProperties.Type + ", cannot assign it a value of type " + assignmentType);
+                SyntaxError(context, "Variable " + variableName + " is of type " + variableProperties.Type + ", cannot assign it a value of type " + assignmentType);
                 return 0;
             }
 
