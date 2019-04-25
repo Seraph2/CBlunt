@@ -76,7 +76,7 @@ namespace CBlunt.ANTLR
             var variableName = context.ID().GetText();
 
             // Get the variable's value if it exists. A context with 4 children is a declaration followed by an assignment
-            var variableValue = context.expression() != null ? context.expression().GetText() : null;
+            var variableValue = context.expression()?.GetText();
 
             // Get the parent index of this visitor
             var parentRuleIndex = context.Parent.RuleIndex;
