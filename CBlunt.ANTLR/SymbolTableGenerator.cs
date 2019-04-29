@@ -17,6 +17,14 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
+            int iter = 0;
+
+            while (context.function(iter) != null)
+            {
+                Visit(context.function(iter));
+
+                ++iter;
+            }
 
 
 #if DEBUG
@@ -28,6 +36,47 @@ namespace CBlunt.ANTLR
         public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
         {
             return base.VisitBlock(context);
+        }
+
+        public override int VisitFunction([NotNull] CBluntParser.FunctionContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunction");
+#endif
+
+            // The type of the method
+            var methodType = context.functiontype().GetText();
+
+            // The name of the method
+            var methodName = context.ID(0).GetText();
+
+            // The list of parameter types the method has
+            var methodTypes = new List<string>();
+
+            int iter = 0;
+            while (context.variabletype(iter) != null)
+            {
+                // Get the parameter type
+                var methodParameter = context.variabletype(iter).GetText();
+
+                // Add it to the list of parameter types the method has
+                methodTypes.Add(methodParameter);
+
+                // Increment iter
+                ++iter;
+            }
+
+            // Create MethodProperties object
+            var methodProperties = new MethodProperties
+            {
+                Type = methodType,
+                ParameterTypes = methodTypes
+            };
+
+            // Add the method along with its properties to the symbol table
+            SymbolTable.MethodDictionary.Add(methodName, methodProperties);
+
+            return base.VisitFunction(context);
         }
     }
 
@@ -53,53 +102,6 @@ namespace CBlunt.ANTLR
         {
             // Set the variable's type
             Type = type;
-
-            // Set the variable's value
-            /// REMOVE
-            Value = value;
-
-            // If it is found that the variable is initialized with a value, set its initialization flag
-            /// REMOVE
-            if (value != null)
-                Initialized = true;
-        }
-    }
-
-    /*
-    * Store for a method's properties
-    */
-    class MethodProperties
-    {
-        // The (return) type of the function
-        public string Type { get; set; }
-
-        // The list of parameter types this method takes (number, bool, text)
-        public List<string> ParameterTypes = new List<string>();
-
-        // Determines if the method has been used somewhere in code, eg: number a = Test(123);
-        /// REMOVE
-        public bool Discovered { get; set; }
-
-        // Determines whether there has been a declaration for the method
-        /// REMOVE
-        public bool Declared { get; set; }
-
-        // A list of nodes that has discovered this function before it was properly declared
-        /// REMOVE
-        public List<DiscoveryNode> DiscoveryNodes = new List<DiscoveryNode>();
-
-        // A node signifying a discovery of the method. Once the method has been declared, all nodes will be iterated over from start to end to verify if they followed the rules of the method
-        /// REMOVE
-        public class DiscoveryNode
-        {
-            // The line the method was discovered on
-            int Line { get; set; }
-
-            // The type of the discovered method, if there exists one. This will be null if the method in code is not used to return a value
-            string Type { get; set; }
-
-            // The types of parameters th
-            List<string> ParameterTypes = new List<string>();
         }
     }
 }

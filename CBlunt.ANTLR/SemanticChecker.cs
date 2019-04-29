@@ -195,16 +195,6 @@ namespace CBlunt.ANTLR
                 {
                     var methodProperties = _methodDictionary[methodName];
 
-                    // Determine if the method has been declared or not. If it has been declared, test against the found values
-                    if (methodProperties.Declared)
-                    {
-                        // Verify against existing properties
-                    }
-                    else
-                    {
-                        // Add a discovery node
-                    }
-
                     for (int i = 3; i < functionCall.children.Count - 2; i += 2)
                     {
                         var parameterType = functionCall.children[i].GetText();
@@ -218,15 +208,7 @@ namespace CBlunt.ANTLR
                 else
                 {
                     // Method was not found, this is not a declaration place so set it to discovered but not declared
-                    
-                    var methodProperties = new MethodProperties()
-                    {
-                        Discovered = true,
-                        Declared = false,
-
-                    };
-
-
+                   
 
                 }
 
@@ -285,12 +267,6 @@ namespace CBlunt.ANTLR
             {
                 // Set the type of the method
                 Type = methodType,
-
-                // Method has been declared
-                Declared = true,
-
-                // Method has also been discovered
-                Discovered = true,
 
                 // Create the parameter types list for parsing of the method's parameters
                 ParameterTypes = new List<string>()
