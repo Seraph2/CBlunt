@@ -54,7 +54,10 @@ namespace CBlunt.ANTLR
             var parser = CreateParser(input);
 
             // Generate code
-            new CBluntCodeGenerator().Visit(parser.start());
+            new CBluntCodeGenerator("Test").Visit(parser.start());
+#if DEBUG
+            Console.WriteLine("Code generation test");
+#endif
         }
 
         private static void DisplayError(Exception ex)
@@ -66,7 +69,7 @@ namespace CBlunt.ANTLR
         public static void Main()
         {
             InitializeFileSystemWatcher();
-            LoadFile("SampleCode.txt");
+            LoadFile("SampleCode2.txt");
 
              // Continually loop forever to keep the program (and watcher) alive
             while (true)
@@ -96,9 +99,9 @@ namespace CBlunt.ANTLR
                 string fileText = File.ReadAllText(filePath);
 
                 // Begin compiler
-                GenerateSymbolTable(fileText);
+                //GenerateSymbolTable(fileText);
                 //CheckSemantics(fileText);
-                //GenerateCode(fileText);
+                GenerateCode(fileText);
             }
             catch (Exception exception)
             {
