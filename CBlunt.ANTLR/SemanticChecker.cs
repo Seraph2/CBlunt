@@ -12,7 +12,6 @@ namespace CBlunt.ANTLR
     {
         private Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
         private LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
-        private Dictionary<string, MethodProperties> _methodDictionary = new Dictionary<string, MethodProperties>();
 
         void SyntaxError(object context, string err)
         {
@@ -132,9 +131,7 @@ namespace CBlunt.ANTLR
 
             if (contextExpressionParameter.functioncall() != null)
             {
-                /// TODO: Add functioncall. If the function is not declared yet, simply discover it. Set appropriate expected param type here if the method
-                /// is declared
-                /// Task: 17-04-2019
+                /// TODO: Handle this shit recursively, put it into functioncall instead.
 
                 // Helper variables for accessing deeper visitors
                 var functionCall = contextExpressionParameter.functioncall();
@@ -143,76 +140,101 @@ namespace CBlunt.ANTLR
                 // The name of the method
                 var methodName = contextExpressionParameter.functioncall().ID().GetText();
 
-                // A list to store the passed parameters to the method, to either future compare against or simply store
-                var foundParameterTypes = new List<string>();
-
-                // Get the found parameters in the method
-                /*int iter = 0;
-                while (true)
+                // Check if method exists
+                if (!SymbolTable.MethodDictionary.ContainsKey(methodName))
                 {
-                    if (functionCallParameter[iter] == null)
-                        break;
-
-                    if (functionCallParameter[iter].STRING() != null)
-                    {
-                        foundParameterTypes.Add("text");
-                        ++iter;
-                        continue;
-                    }
-
-                    if (functionCallParameter[iter].NUMBER() != null)
-                    {
-                        foundParameterTypes.Add("number");
-                        ++iter;
-                        continue;
-                    }
-
-                    if (functionCallParameter[iter].truth() != null)
-                    {
-                        foundParameterTypes.Add("bool");
-                        ++iter;
-                        continue;
-                    }
-
-                    if (functionCallParameter[iter].ID() != null)
-                    {
-                        /// TODO: Get variable here
-                        ++iter;
-                        continue;
-                    }
-
-                    if (functionCallParameter[iter].functioncall() != null)
-                    {
-                        /// TODO: No recursion yet
-                        ++iter;
-                        continue;
-                    }
-                }*/
-
-
-                // Check if the method already has been declared or if it has been discovered
-                if (_methodDictionary.ContainsKey(methodName))
-                {
-                    var methodProperties = _methodDictionary[methodName];
-
-                    for (int i = 3; i < functionCall.children.Count - 2; i += 2)
-                    {
-                        var parameterType = functionCall.children[i].GetText();
-
-                        Console.WriteLine(parameterType);
-
-                        // Add the parameter type to the list of parameter types
-                        methodProperties.ParameterTypes.Add(parameterType);
-                    }
-                }
-                else
-                {
-                    // Method was not found, this is not a declaration place so set it to discovered but not declared
-                   
-
+                    SyntaxError(context, "Attempting to call method " + methodName + " that does not exist");
+                    return 0;
                 }
 
+                // Get the method's properties
+                var methodProperties = SymbolTable.MethodDictionary[methodName];
 
+                /// TODO: Make this into a simple method
+                var methodNiceName = methodName;
+
+                methodNiceName += "(";
+
+                foreach (var paramType in methodProperties.ParameterTypes)
+                {
+                    methodNiceName += paramType + ",";
+                }
+
+                // Remove the last comma
+                methodNiceName = methodNiceName.Remove(methodNiceName.Length - 1);
+
+                methodNiceName += ")";
+                /// ^ TURN THIS INTO A UTILITY METHOD
+
+                // Check if the method takes parameters. If the functioncall sends a parameter and the method does not take any, stop and give error
+                if (functionCall.parameter(0) != null)
+                {
+                    if (methodProperties.ParameterTypes.Count == 0)
+                    {
+                        SyntaxError(context, "Method with name " + methodName + " does not take any parameters");
+                        return 0;
+                    }
+                }
+
+                // Compare the method's parameters with the found parameters to see whether they match
+                int parameterIter = 0;
+                while (functionCall.parameter(parameterIter) != null)
+                {
+                    var sentParameterType = "";
+
+                    var functionCallParameterType = functionCall.parameter(parameterIter);
+
+                    if (functionCallParameterType.STRING() != null)
+                        sentParameterType = "text";
+
+                    if (functionCallParameterType.NUMBER() != null)
+                        sentParameterType = "number";
+
+                    if (functionCallParameterType.truth() != null)
+                        sentParameterType = "bool";
+
+                    /*
+                    // GET THE VARIABLE FROM FIRST THE METHOD SCOPE THEN THE CLASS SCOPE
+                    if (awer.ID() != null)
+                        sentParameterType = "id";
+
+                    // HANDLE FUNCTIONCALL RECURSIVELY
+                    if (awer.functioncall() != null)
+                        sentParameterType = "func";
+                    */
+
+                    // If nothing matched, we got a problem
+                    if (sentParameterType == "")
+                    {
+                        Console.WriteLine("Houston, we have a problem");
+                        return 0;
+                    }
+
+                    if (methodProperties.ParameterTypes.Count < parameterIter+1)
+                    {
+                        SyntaxError(context, "Method " + methodNiceName + " does not take " + (parameterIter+1) + " parameters");
+                        return 0;
+                    }
+
+                    var expectedMethodParameterType = methodProperties.ParameterTypes[parameterIter];
+
+                    if (expectedMethodParameterType != sentParameterType)
+                    {
+                        SyntaxError(context, "Method " + methodNiceName + " got type " + sentParameterType + " as parameter number " + (parameterIter+1) + ", expected " + expectedMethodParameterType);
+                        return 0;
+                    }
+
+                    ++parameterIter;
+                }
+
+                if (methodProperties.ParameterTypes.Count > parameterIter)
+                {
+                    SyntaxError(context, "Method " + methodNiceName + " got " + parameterIter + " parameters, expected " + methodProperties.ParameterTypes.Count);
+                    return 0;
+                }
+
+                // Set the expected parameter type to the method's properties
+                expectedParameterType = methodProperties.Type;
             }
 
             /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
@@ -228,17 +250,19 @@ namespace CBlunt.ANTLR
             switch (variableType)
             {
                 case "text":
-                    if (contextExpressionParameter.STRING() == null)
+                    /// TODO: MAKE DIS SHIT WORK
+                    Console.WriteLine(contextExpressionParameter.STRING() == null);
+                    if (contextExpressionParameter.STRING() == null || contextExpressionParameter.functioncall() != null)
                         SyntaxError(context, "Expected text, got " + expectedParameterType);
                     break;
 
                 case "number":
-                    if (contextExpressionParameter.NUMBER() == null)
+                    if (contextExpressionParameter.NUMBER() == null && contextExpressionParameter.functioncall() == null)
                         SyntaxError(context, "Expected number, got " + expectedParameterType);
                     break;
 
                 case "bool":
-                    if (contextExpressionParameter.truth() == null)
+                    if (contextExpressionParameter.truth() == null && contextExpressionParameter.functioncall() == null)
                         SyntaxError(context, "Expected bool, got " + expectedParameterType);
                     break;
             }
@@ -297,10 +321,6 @@ namespace CBlunt.ANTLR
             /// If so, do not override the dictionary, simply check the methodProperties against the discovered one
 
             /// TODO: If method has already existed due to discovery nodes, now verify if discovery nodes were true
-
-            // Finally, add the method along with its properties to the corresponding dictionary. Whenever the method is encountered in potentially future code,
-            // it will be checked against semantically
-            _methodDictionary.Add(methodName, methodProperties);
 
             // Visit the block of the function
             Visit(context.block());

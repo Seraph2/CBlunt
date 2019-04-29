@@ -15,6 +15,7 @@ namespace CBlunt.ANTLR
     class Program
     {
         private static FileSystemWatcher _watcher;
+        private static string FileText;
         public static void Main()
         {
             InitializeFileSystemWatcher();
@@ -45,25 +46,25 @@ namespace CBlunt.ANTLR
             return parser;
         }
 
-        private static void GenerateSymbolTable(string input)
+        private static void GenerateSymbolTable()
         {
-            var parser = CreateParser(input);
+            var parser = CreateParser(FileText);
 
             // Generate symbol table
             new SymbolTableGenerator().Visit(parser.start());
         }
 
-        private static void CheckSemantics(string input)
+        private static void CheckSemantics()
         {
-            var parser = CreateParser(input);
+            var parser = CreateParser(FileText);
 
             // Check semantics
             new SemanticChecker().Visit(parser.start());
         }
 
-        private static void GenerateCode(string input)
+        private static void GenerateCode()
         {
-            var parser = CreateParser(input);
+            var parser = CreateParser(FileText);
 
             // Generate code
             new CodeGenerator().Visit(parser.start());
@@ -85,6 +86,9 @@ namespace CBlunt.ANTLR
             // Clear console for clean output
             Console.Clear();
 
+            // Clean the symbol table
+            SymbolTable.MethodDictionary.Clear();
+
             // Write out timestamp
             Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
 
@@ -92,12 +96,12 @@ namespace CBlunt.ANTLR
             try
             {
                 // Read text from the changed file
-                string fileText = File.ReadAllText(filePath);
+                FileText = File.ReadAllText(filePath);
 
                 // Begin compiler
-                GenerateSymbolTable(fileText);
-                //CheckSemantics(fileText);
-                //GenerateCode(fileText);
+                GenerateSymbolTable();
+                CheckSemantics();
+                //GenerateCode();
             }
             catch (Exception exception)
             {
