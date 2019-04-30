@@ -540,7 +540,6 @@ namespace CBlunt.ANTLR
                     Visit(context.parameter(iter).functioncall());
                     Console.WriteLine(1);
                 }
-                    
 
                 methodParameters.Add(context.parameter(iter).GetText());
                 ++iter;
@@ -555,9 +554,79 @@ namespace CBlunt.ANTLR
                 }
             }
 
-            
-
             return base.VisitFunctioncall(context);
+        }
+
+        /*
+         * Get a method's properties
+         */
+        MethodProperties GetMethodProperties(string methodName)
+        {
+            if (SymbolTable.MethodDictionary.ContainsKey(methodName))
+                return SymbolTable.MethodDictionary[methodName];
+
+            return null;
+        }
+
+        /*
+         * Get a declared variable in method scope first, then the class scope
+         */
+        VariableProperties GetDeclaredVariable(string variableName)
+        {
+            VariableProperties variableProperties = null;
+
+            // Get the variable's properties from method scope
+            variableProperties = GetDeclaredVariableInMethodScope(variableName);
+
+            // If the variable's properties was not found, try the class scope
+            if (variableProperties == null)
+                variableProperties = GetDeclaredVariableInClassScope(variableName);
+
+            return variableProperties;
+        }
+
+        VariableProperties GetDeclaredVariableInMethodScope(string variableName)
+        {
+            // Get the last node to iterate backwards over the linked list. Note that it is impossible for the linked list to be empty initially
+            var currNode = _methodScopeLinkedList.Last;
+
+            VariableProperties variableProperties = null;
+
+            // This loop will ALWAYS end, as it is certain there will exist at least 1 node, and a node will always have an end, aka. previous == null. Should there somehow not exist such a node (for debugging maybe), it will give an error
+            // We need to iterate over all previous scopes and see if the variable is declared as that is not allowed in C#
+            while (true)
+            {
+                // Get the value (aka. dictionary) of the scope
+                var scopeVariables = currNode.Value;
+
+                // Stop the loop if the variable has been found in the current scope
+                if (scopeVariables.ContainsKey(variableName))
+                {
+                    variableProperties = scopeVariables[variableName];
+                    break;
+                }
+
+                // If there exists no previous node, stop the loop
+                if (currNode.Previous == null)
+                    break;
+
+                currNode = currNode.Previous;
+            }
+
+            // Simply return as variable properties may or may not be null
+            return variableProperties;
+        }
+
+        VariableProperties GetDeclaredVariableInClassScope(string variableName)
+        {
+            // Create variableproperties file for storing the potential class variable
+            VariableProperties variableProperties = null;
+
+            if (_classScopeVariablesDictionary.ContainsKey(variableName))
+                variableProperties = _classScopeVariablesDictionary[variableName];
+
+            // Return either null or the variable's properties
+            return variableProperties;
         }
 
         /*
@@ -565,7 +634,7 @@ namespace CBlunt.ANTLR
          */
         bool FindMethod(string methodName)
         {
-            return SymbolTable.MethodDictionary.ContainsKey(methodName);
+            return GetMethodProperties(methodName) != null;
         }
 
         /*
@@ -585,13 +654,12 @@ namespace CBlunt.ANTLR
             return false;
         }
 
-
         /*
          * A helper metohod for checking if a method is declared in class scope
          */
         bool FindDeclaredVariableInClassScope(string variableName)
         {
-            return _classScopeVariablesDictionary.ContainsKey(variableName);
+            return GetDeclaredVariableInClassScope(variableName) != null;
         }
 
         /*
@@ -599,35 +667,7 @@ namespace CBlunt.ANTLR
          */
         bool FindDeclaredVariableInMethodScope(string variableName)
         {
-            // Get the last node to iterate backwards over the linked list. Note that it is impossible for the linked list to be empty initially
-            var currNode = _methodScopeLinkedList.Last;
-
-            // Variable for testing whether the variable was found in current or parent scope
-            var variableExists = false;
-
-            // This loop will ALWAYS end, as it is certain there will exist at least 1 node, and a node will always have an end, aka. previous == null. Should there somehow not exist such a node (for debugging maybe), it will give an error
-            // We need to iterate over all previous scopes and see if the variable is declared as that is not allowed in C#
-            while (true)
-            {
-                // Get the value (aka. dictionary) of the scope
-                var scopeVariables = currNode.Value;
-
-                // Stop the loop if the variable has been found in the current scope
-                if (scopeVariables.ContainsKey(variableName))
-                {
-                    variableExists = true;
-                    break;
-                }
-
-                // If there exists no previous node, stop the loop
-                if (currNode.Previous == null)
-                    break;
-
-                currNode = currNode.Previous;
-            }
-
-            // If variable was not found, return false
-            return variableExists;
+            return GetDeclaredVariableInMethodScope(variableName) != null;
         }
     }
 }
