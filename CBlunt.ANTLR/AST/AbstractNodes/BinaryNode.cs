@@ -1,8 +1,8 @@
 namespace CBlunt.ANTLR.AST.AbstractNodes
 {
-    public abstract class BinaryNode<L, R> : Node where L : Node where R : Node
+    public abstract class BinaryNode
     {
-        public L LeftChild { get; set; }
-        public R RightChild { get; set; }
+        public BinaryNode LeftChild { get; set; }
+        public BinaryNode RightChild { get; set; }
     }
 }

@@ -2,8 +2,8 @@ using CBlunt.ANTLR.AST.AbstractNodes;
 
 namespace CBlunt.ANTLR.AST.Arithmetics
 {
-    public class Number : Node
+    public class ArithmeticExpression : BinaryNode, ArithmeticNode
     {
-        public double Value { get; set; }
+        
     }
 }

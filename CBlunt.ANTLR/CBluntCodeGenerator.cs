@@ -59,7 +59,7 @@ namespace CBlunt.ANTLR
             if (contextExpressionParameter.NUMBER() != null)
                 expectedParameterType = "number";
             else
-            if (contextExpressionParameter.TRUTH() != null)
+            if (contextExpressionParameter.truth() != null)
             {
                 expectedParameterType = "truth";
                 Console.WriteLine("TRUTH matched!");
@@ -94,7 +94,7 @@ namespace CBlunt.ANTLR
                     break;
 
                 case "bool":
-                    if (contextExpressionParameter.TRUTH() == null)
+                    if (contextExpressionParameter.truth() == null)
                         Console.WriteLine("Syntax error on line " + context.Start.Line + "! Expected bool, got " + expectedParameterType);
                     break;
             }
