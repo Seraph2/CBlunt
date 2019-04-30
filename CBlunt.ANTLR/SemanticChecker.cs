@@ -95,7 +95,7 @@ namespace CBlunt.ANTLR
             }
             else
             {
-                // Check whether the variable was found in the method scope
+                // Check whether the variable already exists in the method scope
                 if (FindDeclaredVariableInMethodScope(variableName))
                 {
                     SyntaxError(context, "Variable with name " + variableName + " already exists in current or parent scope");
@@ -114,24 +114,24 @@ namespace CBlunt.ANTLR
             var contextExpressionParameter = context.expression().parameter();
 
             /// TODO: It may be necessary to determine a better way to do this, potentially utilizing visitor more correctly as this MAY complicate things later
-            string expectedParameterType = "";
+            string foundParameterType = "";
 
             // Get the name of the expected parameter for potential error output further below
             if (contextExpressionParameter.STRING() != null)
-                expectedParameterType = "text";
+                foundParameterType = "text";
 
             if (contextExpressionParameter.NUMBER() != null)
-                expectedParameterType = "number";
+                foundParameterType = "number";
 
             if (contextExpressionParameter.truth() != null)
-                expectedParameterType = "bool";
+                foundParameterType = "bool";
 
             if (contextExpressionParameter.ID() != null)
-                expectedParameterType = "id";
+                foundParameterType = "id";
 
             if (contextExpressionParameter.functioncall() != null)
             {
-                /// TODO: Handle this shit recursively, put it into functioncall instead.
+                /// TODO: PUT THIS INTO FUNCTIONCALL, ADD RECURSIVE HANDLING TOO
 
                 // Helper variables for accessing deeper visitors
                 var functionCall = contextExpressionParameter.functioncall();
@@ -234,37 +234,23 @@ namespace CBlunt.ANTLR
                 }
 
                 // Set the expected parameter type to the method's properties
-                expectedParameterType = methodProperties.Type;
+                foundParameterType = methodProperties.Type;
             }
 
             /// TODO: ID requires specialized handling as it first has to be evaluated if the ID even exists, and what the type of ID is.
             // Evaluation of ID is here because we can simply stop if the ID exists and is of the same type. This can only be done when registering of variables is done
-            if (expectedParameterType == "id")
+            if (foundParameterType == "id")
             {
 
 
                 return 0;
             }
 
-            // Default case is omitted because it is not possible due to the parser
-            switch (variableType)
+            // Check the variable's type with the found type
+            if (variableType != foundParameterType)
             {
-                case "text":
-                    /// TODO: MAKE DIS SHIT WORK
-                    Console.WriteLine(contextExpressionParameter.STRING() == null);
-                    if (contextExpressionParameter.STRING() == null || contextExpressionParameter.functioncall() != null)
-                        SyntaxError(context, "Expected text, got " + expectedParameterType);
-                    break;
-
-                case "number":
-                    if (contextExpressionParameter.NUMBER() == null && contextExpressionParameter.functioncall() == null)
-                        SyntaxError(context, "Expected number, got " + expectedParameterType);
-                    break;
-
-                case "bool":
-                    if (contextExpressionParameter.truth() == null && contextExpressionParameter.functioncall() == null)
-                        SyntaxError(context, "Expected bool, got " + expectedParameterType);
-                    break;
+                SyntaxError(context, "Expected " + variableType + ", got " + foundParameterType);
+                return 0;
             }
 
             return 0;
@@ -389,9 +375,6 @@ namespace CBlunt.ANTLR
             // The assignment value
             var assignmentValue = context.children[2].GetText();
 
-
-            // Now we have to retrieve the properties of the variable to determine possible assignments
-
             // First iterate over the current scope and all previous scopes
             var currNode = _methodScopeLinkedList.Last;
             var variableExists = false;
@@ -454,6 +437,7 @@ namespace CBlunt.ANTLR
             {
                 /// TODO: Get the variable's type from current or parent scope, or class scope, and determine whether its type matches.
                 /// Do not cause any error here, simply set the expectedAssignmentValue and continue
+                
             }
 
             if (contextExpressionParameter.functioncall() != null)
@@ -532,12 +516,30 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitFunctioncall");
 #endif
-            // If the parent is a statement, and the method has not been declared yet, add a discoverynode with NO return type (aka null), as it is 
-            // impossible to return anything on a simple function call
+            
+            // The name of the method to call
+            var methodName = context.ID().GetText();
+
+            // Storage for the passed parameters to the method
+            var methodParameters = new List<string>();
+
+            int iter = 0;
+            while (context.parameter(iter) != null)
+            {
+                if (context.parameter(iter).ID() != null)
+                    Console.WriteLine(1);
+
+                methodParameters.Add(context.parameter(iter).GetText());
+                ++iter;
+            }
+
             if (context.Parent.RuleIndex == CBluntParser.RULE_statement)
             {
-                Console.WriteLine("Handle FunctionCall with no return type on line " + context.Start.Line);
-                /// 17-04-2019
+                if (!FindMethod(methodName))
+                {
+                    SyntaxError(context, "Attempt to call method " + methodName + " that does not exist");
+                    return 0;
+                }
             }
 
             
@@ -545,6 +547,30 @@ namespace CBlunt.ANTLR
             return base.VisitFunctioncall(context);
         }
 
+        /*
+         *  Determine whether a method exists.
+         */
+        bool FindMethod(string methodName)
+        {
+            return SymbolTable.MethodDictionary.ContainsKey(methodName);
+        }
+
+        /*
+         * A helper metohod for checking if a method is declared in class scope
+         */
+        bool FindDeclaredVariable(string variableName)
+        {
+            // Check method scope first
+            if (FindDeclaredVariableInMethodScope(variableName))
+                return true;
+
+            // Then check the class scope
+            if (FindDeclaredVariableInClassScope(variableName))
+                return true;
+
+            // If not found in both of them, variable could not be found
+            return false;
+        }
 
 
         /*
