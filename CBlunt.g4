@@ -2,11 +2,11 @@ grammar CBlunt;
 
 @parser::header {#pragma warning disable 3021}
 @lexer::header {#pragma warning disable 3021}
-	
+
 start
     : (function | declaration ';')+
     ;
-	
+
 block : '{' (statement)* '}' ;
 
 function
@@ -16,17 +16,17 @@ function
 statement
 	: (((declaration | functioncall | variableedit | functionreturn) ';') | iterative | selective)
 	;
-	
+
 functioncall
 	: ID '(' ((parameter ',')* parameter)? ')'
 	;
-	
+
 iterative
 	: 'while' '(' condition ')' block
 	| 'for' '(' (declaration | variableedit) ';' condition ';' variableedit ')' block
 	;
-	
-selective   
+
+selective
 	: 'if' '(' condition ')' block elsestmt?
 	;
 
@@ -38,28 +38,28 @@ declaration
     : variabletype ID ('=' expression)?
     ;
 
-variableedit      
+variableedit
 	: ID equals expression
 	;
-	
+
 expression
 	: parameter calculation*
 	| parameter
 	;
-	
+
 calculation
 	: operator parameter
 	| operator '(' expression ')'
 	;
-	
+
 condition
 	: '!'? (logic | ID) (conditional condition)*
 	;
-	
+
 logic
 	: (expression relational expression)
 	;
-	
+
 
 relational
 	: '=='
@@ -71,8 +71,8 @@ relational
 	;
 
 conditional
-	: '||' 
-	| '&&' 
+	: '||'
+	| '&&'
 	| 'or'
 	| 'and'
 	;
@@ -82,7 +82,7 @@ variabletype
     | 'text'
 	| 'bool'
     ;
-	
+
 functiontype
 	: variabletype
 	| 'void'
@@ -95,7 +95,7 @@ parameter
 	| ID
 	| functioncall
 	;
-	
+
 functionreturn
 	: 'return' expression
 	;
@@ -118,7 +118,7 @@ equals
 	;
 
 LINECOMMENT
-	: '//' ~[\r\n]* -> skip 
+	: '//' ~[\r\n]* -> skip
 	;
 
 COMMENT

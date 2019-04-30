@@ -127,11 +127,18 @@ namespace CBlunt.ANTLR
                 foundParameterType = "bool";
 
             if (contextExpressionParameter.ID() != null)
+            {
+                // GET VARIABLE, REMEMBER TO CHECK SCOPING (CLASS OR GLOBAL)
                 foundParameterType = "id";
+            }
+
 
             if (contextExpressionParameter.functioncall() != null)
             {
                 /// TODO: PUT THIS INTO FUNCTIONCALL, ADD RECURSIVE HANDLING TOO
+                /// ADD DIS WHEN RECURS DONE:
+                /// SIMPLY: VISIT FUNCTIONCALL TO DETERMINE ERRORS, IF NO ERRORS GRAB DAT TYPE OF THE FUNCTION AND THEN DONE
+                // Visit(contextExpressionParameter.functioncall());
 
                 // Helper variables for accessing deeper visitors
                 var functionCall = contextExpressionParameter.functioncall();
@@ -523,11 +530,17 @@ namespace CBlunt.ANTLR
             // Storage for the passed parameters to the method
             var methodParameters = new List<string>();
 
+            // Get all parameters with their corresponding types for future 
             int iter = 0;
             while (context.parameter(iter) != null)
             {
-                if (context.parameter(iter).ID() != null)
+                if (context.parameter(iter).functioncall() != null)
+                {
+                    // Handle functioncall recursively
+                    Visit(context.parameter(iter).functioncall());
                     Console.WriteLine(1);
+                }
+                    
 
                 methodParameters.Add(context.parameter(iter).GetText());
                 ++iter;
@@ -556,7 +569,7 @@ namespace CBlunt.ANTLR
         }
 
         /*
-         * A helper metohod for checking if a method is declared in class scope
+         * A helper method for checking if a method is declared in class scope
          */
         bool FindDeclaredVariable(string variableName)
         {
