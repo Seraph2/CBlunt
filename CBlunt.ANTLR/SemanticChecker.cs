@@ -272,12 +272,11 @@ namespace CBlunt.ANTLR
             // Create a new scope to the linked list
             _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
 
-
             // Get the method's type
-            var methodType = context.children[0].GetText();
+            var methodType = context.functiontype().GetText();
 
             // Get the method's name
-            var methodName = context.children[1].GetText();
+            var methodName = context.ID(0).GetText();
 
             // Create the actual properties for the method
             MethodProperties methodProperties = new MethodProperties
@@ -374,13 +373,15 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitVariableedit");
 #endif
             // The name of the variable
-            var variableName = context.children[0].GetText();
+            var variableName = context.ID().GetText();
 
             // The operator type (For example: = += /= so on)
-            var operatorType = context.children[1].GetText();
+            var operatorType = context.equals().GetText();
 
             // The assignment value
-            var assignmentValue = context.children[2].GetText();
+            var assignmentValue = context.expression().GetText();
+
+            /// TODO: USE UTILITY METHOD
 
             // First iterate over the current scope and all previous scopes
             var currNode = _methodScopeLinkedList.Last;
@@ -444,7 +445,8 @@ namespace CBlunt.ANTLR
             {
                 /// TODO: Get the variable's type from current or parent scope, or class scope, and determine whether its type matches.
                 /// Do not cause any error here, simply set the expectedAssignmentValue and continue
-                
+
+
             }
 
             if (contextExpressionParameter.functioncall() != null)
