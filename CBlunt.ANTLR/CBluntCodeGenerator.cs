@@ -11,44 +11,130 @@ namespace CBlunt.ANTLR
 {
     class CBluntCodeGenerator : CBluntBaseVisitor<int>
     {
-        string path;
+        string filepath;
+        string filecontent;
+        List<string> imports;
+
+
         public override int VisitStart([NotNull] CBluntParser.StartContext context)
         {
 #if DEBUG
             Console.WriteLine("Beginning code generation");
             Console.WriteLine("VisitStart");
 #endif
-            using (StreamWriter stream = File.CreateText(this.path))
+            this.imports.Add("using System;\n");
+            this.filecontent += "namespace CBCode { \n class Program { \n";
+            for (int count = 0; count < context.ChildCount; ++count)
             {
-                //Start by translating imports.
-                stream.WriteLine("using System;");
+                Visit(context.GetChild(count));
+            }
+            this.filecontent += "} }";
 
-                //Create the namespace for the translated code.
-                stream.WriteLine("namespace CBCode {");
+            //TODO: Rewrite to loop through the list for each entry instead.
+            this.filecontent = this.imports.ToString() + this.filecontent;
 
-                //The class which houses the CBlunt Code.
-                stream.WriteLine("class CBCode {");
-
-                Visit(context);
-
-                stream.WriteLine("}");
-
-                stream.WriteLine("}");
+            using (StreamWriter stream = File.CreateText(this.filepath))
+            {
+                stream.WriteLine(this.filecontent);
             }
 #if DEBUG
-            Console.WriteLine("Finished code generation");
+                Console.WriteLine("Finished code generation");
 #endif
             return 0;
         }
 
-        public CBluntCodeGenerator(string pathinsert) {
-            string temppath = pathinsert;
-            int count = 0;
-            while (File.Exists(temppath)) {
-                ++count;
-                temppath = pathinsert + "_(" + count + ")";
+        public override int VisitDeclaration([NotNull] CBluntParser.DeclarationContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitDeclaration");
+#endif
+            string vartype = context.variabletype().GetText();
+            if (vartype == "number")
+            {
+                this.filecontent += "double ";
+            } 
+            else if (vartype == "text") 
+            {
+                this.filecontent += "string ";
+            } 
+            else if (vartype == "bool ")
+            {
+                this.filecontent += "Boolean ";
             }
-            this.path = temppath;
+
+            this.filecontent += context.ID().GetText() + "=" + context.expression().GetText() + ";\n";
+
+            return 0;
+        }
+
+        public override int VisitFunction([NotNull] CBluntParser.FunctionContext context)
+        {
+            if (context.ID(0).GetText() == "Main")
+            {
+                this.filecontent += "static void Main() {\n";
+            } else
+            {
+                string functiontype = context.functiontype().GetText();
+                if (functiontype == "number")
+                {
+                    this.filecontent += "double ";
+                } else if(functiontype == "text ")
+                {
+                    this.filecontent += "string ";
+                } else if (functiontype == "bool")
+                {
+                    this.filecontent += "Boolean ";
+                } else if (functiontype == "void")
+                {
+                    this.filecontent += "void ";
+                }
+                this.filecontent += context.ID(0).GetText() + "(";
+                
+                //TODO: Find some way of translating the parameters
+
+                this.filecontent += ") {\n";
+
+                for (int count = 0; count < context.ChildCount; ++count)
+                {
+                    Visit(context.GetChild(count));
+                }
+
+                this.filecontent += "}\n";
+            }
+
+            return 0;
+        }
+
+        public override int VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context)
+        {
+            this.filecontent += context.ID().GetText() + " (";
+            for (int count = 0; count < context.ChildCount; ++count)
+            {
+                Visit(context.GetChild(count));
+                if (context.GetChild(count).GetText() != "(" && context.GetChild(count).GetText() != ")")
+                {
+                    this.filecontent += ", ";
+                }
+            }
+            this.filecontent += ")";
+            return 0;
+        }
+
+        public override int VisitParameter([NotNull] CBluntParser.ParameterContext context)
+        {
+
+            return 0;
+        }
+
+        public CBluntCodeGenerator() {
+            string temppath = "Test";
+            int count;
+            for(count = 0; File.Exists(temppath); ++count){
+                temppath = "Test" + count;
+            }
+            this.filepath = temppath;
+            this.filecontent = "";
+            imports = new List<string>();
         }
     }
 }

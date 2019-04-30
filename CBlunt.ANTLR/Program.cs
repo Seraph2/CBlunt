@@ -54,7 +54,7 @@ namespace CBlunt.ANTLR
             var parser = CreateParser(input);
 
             // Generate code
-            new CBluntCodeGenerator("Test").Visit(parser.start());
+            new CBluntCodeGenerator().Visit(parser.start());
 #if DEBUG
             Console.WriteLine("Code generation test");
 #endif
@@ -68,7 +68,7 @@ namespace CBlunt.ANTLR
 
         public static void Main()
         {
-            InitializeFileSystemWatcher();
+            //InitializeFileSystemWatcher();
             LoadFile("SampleCode2.txt");
 
              // Continually loop forever to keep the program (and watcher) alive
