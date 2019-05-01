@@ -475,6 +475,7 @@ namespace CBlunt.ANTLR
             while (context.parameter(parameterIter) != null)
             {
                 var parameterType = "";
+                var parameterCount = parameterIter + 1;
 
                 var functionCallParameterType = context.parameter(parameterIter);
 
@@ -508,11 +509,7 @@ namespace CBlunt.ANTLR
                     var methodHere = GetMethodProperties(functionCallParameterType.functioncall().ID().GetText());
 
                     if (methodHere == null)
-                    {
-                        Console.WriteLine("awer");
                         return 1;
-                    }
-
 
                     parameterType = methodHere.Type;
                 }
@@ -520,13 +517,13 @@ namespace CBlunt.ANTLR
                 // If nothing matched, something is seriously wrong
                 if (parameterType == "")
                 {
-                    SyntaxError(context, "Nothing matched parameter number " + (parameterIter + 1) + " for method " + methodNiceName);
+                    SyntaxError(context, "Nothing matched parameter number " + parameterCount + " for method " + methodNiceName);
                     return 1;
                 }
 
-                if (methodProperties.ParameterTypes.Count < parameterIter + 1)
+                if (methodProperties.ParameterTypes.Count < parameterCount)
                 {
-                    SyntaxError(context, "Method " + methodNiceName + " does not take " + (parameterIter + 1) + " parameters");
+                    SyntaxError(context, "Method " + methodNiceName + " does not take " + parameterCount + " parameters");
                     return 1;
                 }
 
@@ -534,7 +531,7 @@ namespace CBlunt.ANTLR
 
                 if (expectedMethodParameterType != parameterType)
                 {
-                    SyntaxError(context, "Method " + methodNiceName + " got type " + parameterType + " as parameter number " + (parameterIter + 1) + ", expected " + expectedMethodParameterType);
+                    SyntaxError(context, "Method " + methodNiceName + " got type " + parameterType + " as parameter number " + parameterCount + ", expected " + expectedMethodParameterType);
                     return 1;
                 }
 
