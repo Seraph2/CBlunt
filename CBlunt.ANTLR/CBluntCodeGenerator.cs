@@ -48,19 +48,7 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitDeclaration");
 #endif
-            string vartype = context.variabletype().GetText();
-            if (vartype == "number")
-            {
-                this.filecontent += "double ";
-            } 
-            else if (vartype == "text") 
-            {
-                this.filecontent += "string ";
-            } 
-            else if (vartype == "bool ")
-            {
-                this.filecontent += "Boolean ";
-            }
+            this.ConvertVariableType(context.variabletype().GetText());
 
             this.filecontent += context.ID().GetText() + "=" + context.expression().GetText() + ";\n";
 
@@ -74,23 +62,27 @@ namespace CBlunt.ANTLR
                 this.filecontent += "static void Main() {\n";
             } else
             {
-                string functiontype = context.functiontype().GetText();
-                if (functiontype == "number")
-                {
-                    this.filecontent += "double ";
-                } else if(functiontype == "text ")
-                {
-                    this.filecontent += "string ";
-                } else if (functiontype == "bool")
-                {
-                    this.filecontent += "Boolean ";
-                } else if (functiontype == "void")
-                {
-                    this.filecontent += "void ";
-                }
+                this.ConvertFunctionType(context.functiontype().GetText());
                 this.filecontent += context.ID(0).GetText() + "(";
-                
-                //TODO: Find some way of translating the parameters
+
+                string child = "";
+                for (int counter = 2; counter < context.children.Count; ++counter)
+                {
+                    child = context.GetChild(counter).GetText();
+
+                    //TODO: Fix this if-statement always being false.
+                    if (context.GetChild(counter).GetType().IsInstanceOfType(context.variabletype().GetType()))
+                    {
+                        this.ConvertVariableType(child);
+                    } else
+                    {
+                        this.filecontent += context.GetChild(counter).GetText();
+                    }
+                    if (context.GetChild(counter).GetType().IsInstanceOfType(CBluntParser.ID))
+                    {
+                        this.filecontent += ", ";
+                    }
+                }
 
                 this.filecontent += ") {\n";
 
@@ -120,6 +112,8 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
+        
+
         public override int VisitParameter([NotNull] CBluntParser.ParameterContext context)
         {
 
@@ -135,6 +129,37 @@ namespace CBlunt.ANTLR
             this.filepath = temppath;
             this.filecontent = "";
             imports = new List<string>();
+        }
+
+        private void ConvertFunctionType(string functiontype)
+        {
+            if (functiontype == "number")
+            {
+                this.filecontent += "double ";
+            } else if (functiontype == "text")
+            {
+                this.filecontent += "string ";
+            } else if (functiontype == "bool")
+            {
+                this.filecontent += "Boolean ";
+            } else if (functiontype == "void")
+            {
+                this.filecontent += "void ";
+            }
+        }
+
+        private void ConvertVariableType(string variabletype)
+        {
+            if (variabletype == "number")
+            {
+                this.filecontent += "double ";
+            } else if (variabletype == "text")
+            {
+                this.filecontent += "string ";
+            } else if (variabletype == "bool")
+            {
+                this.filecontent += "Boolean ";
+            }
         }
     }
 }
