@@ -102,6 +102,9 @@ namespace CBlunt.ANTLR
         {
             // Set the variable's type
             Type = type;
+
+            if (value != null)
+                Initialized = true;
         }
     }
 }
