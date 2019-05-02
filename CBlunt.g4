@@ -48,8 +48,7 @@ expression
 	;
 	
 calculation
-	: operator parameter
-	| operator '(' expression ')'
+	: operator ( parameter | '(' expression ')' )
 	;
 	
 condition

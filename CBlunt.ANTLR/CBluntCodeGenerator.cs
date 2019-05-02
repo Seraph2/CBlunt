@@ -23,7 +23,9 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
             this.imports.Add("using System;\n");
-            this.filecontent += "namespace CBCode { \n class Program { \n";
+            this.AddText("namespace CBCode { \n class Program { \n");
+
+            //We visit all children to initiate their translations
             for (int count = 0; count < context.ChildCount; ++count)
             {
                 Visit(context.GetChild(count));
@@ -32,6 +34,7 @@ namespace CBlunt.ANTLR
             //TODO: Rewrite to loop through the list for each entry instead.
             this.filecontent = this.imports.ToString() + this.filecontent;
 
+            //After translation is done, the contents are saved to a file
             using (StreamWriter stream = File.CreateText(this.filepath))
             {
                 stream.WriteLine(this.filecontent);
@@ -49,7 +52,8 @@ namespace CBlunt.ANTLR
 #endif
             this.ConvertVariableType(context.variabletype().GetText());
 
-            this.filecontent += context.ID().GetText() + "=" + context.expression().GetText() + ";\n";
+            this.AddText(context.ID().GetText() + " =");
+            Visit(context.expression());
             return 0;
         }
 
@@ -85,10 +89,11 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
+        //Update after merging Jakob's branch with the updated functioncall rules.
         public override int VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context)
         {
             this.filecontent += context.ID().GetText() + " (";
-            for (int count = 0; count < context.ChildCount; ++count)
+            for (int count = 1; count < context.ChildCount; ++count)
             {
                 Visit(context.GetChild(count));
                 if (context.GetChild(count).GetText() != "(" && context.GetChild(count).GetText() != ")")
@@ -135,6 +140,28 @@ namespace CBlunt.ANTLR
                 this.AddText(context.GetChild(counter).GetText());
             }
             return base.VisitEquals(context);
+        }
+
+        public override int VisitExpression([NotNull] CBluntParser.ExpressionContext context)
+        {
+            Visit(context.parameter());
+            for(int counter = 0; counter < context.calculation().Count(); ++counter)
+            {
+                Visit(context.calculation(counter));
+            }
+            return 0;
+        }
+
+        public override int VisitCalculation([NotNull] CBluntParser.CalculationContext context)
+        {
+            
+            Visit(context.@operator());
+            return 0;
+        }
+
+        public override int VisitOperator([NotNull] CBluntParser.OperatorContext context)
+        {
+            return base.VisitOperator(context);
         }
 
         public CBluntCodeGenerator() {
