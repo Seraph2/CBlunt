@@ -29,7 +29,6 @@ namespace CBlunt.ANTLR
                 Visit(context.GetChild(count));
             }
             this.filecontent += "} }";
-
             //TODO: Rewrite to loop through the list for each entry instead.
             this.filecontent = this.imports.ToString() + this.filecontent;
 
@@ -51,7 +50,6 @@ namespace CBlunt.ANTLR
             this.ConvertVariableType(context.variabletype().GetText());
 
             this.filecontent += context.ID().GetText() + "=" + context.expression().GetText() + ";\n";
-
             return 0;
         }
 
@@ -64,23 +62,13 @@ namespace CBlunt.ANTLR
             {
                 this.ConvertFunctionType(context.functiontype().GetText());
                 this.filecontent += context.ID(0).GetText() + "(";
-
-                string child = "";
-                for (int counter = 2; counter < context.children.Count; ++counter)
+                
+                for (int counter = 0; counter < context.variabletype().Count(); ++counter)
                 {
-                    child = context.GetChild(counter).GetText();
-
-                    //TODO: Fix this if-statement always being false.
-                    if (context.GetChild(counter).GetType().IsInstanceOfType(context.variabletype().GetType()))
-                    {
-                        this.ConvertVariableType(child);
-                    } else
-                    {
-                        this.filecontent += context.GetChild(counter).GetText();
-                    }
-                    if (context.GetChild(counter).GetType().IsInstanceOfType(CBluntParser.ID))
-                    {
-                        this.filecontent += ", ";
+                    this.AddText(context.variabletype(counter).GetText());
+                    this.AddText(context.ID(counter + 1).GetText());
+                    if (counter < context.variabletype().Count() - 1) {
+                        this.AddText(",");
                     }
                 }
 
@@ -112,12 +100,41 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
-        
+        public override int VisitStatement([NotNull] CBluntParser.StatementContext context)
+        {
+            for (int counter = 0; counter < context.children.Count; ++counter)
+            {
+                Visit(context.GetChild(counter));
+            }
+            return 0;
+        }
 
         public override int VisitParameter([NotNull] CBluntParser.ParameterContext context)
         {
-
+            for (int counter = 0; counter < context.children.Count; ++counter)
+            {
+                Visit(context.GetChild(counter));
+            }
             return 0;
+        }
+
+        public override int VisitVariableedit([NotNull] CBluntParser.VariableeditContext context)
+        {
+            this.AddText(context.GetChild(0).GetText());
+            for (int counter = 0; counter < context.children.Count; ++counter)
+            {
+                Visit(context.GetChild(counter));
+            }
+            return base.VisitVariableedit(context);
+        }
+
+        public override int VisitEquals([NotNull] CBluntParser.EqualsContext context)
+        {
+            for(int counter = 0; counter < context.ChildCount; ++counter)
+            {
+                this.AddText(context.GetChild(counter).GetText());
+            }
+            return base.VisitEquals(context);
         }
 
         public CBluntCodeGenerator() {
@@ -136,13 +153,13 @@ namespace CBlunt.ANTLR
             if (functiontype == "number")
             {
                 this.filecontent += "double ";
-            } else if (functiontype == "text")
+            } else if (functiontype == "text ")
             {
                 this.filecontent += "string ";
-            } else if (functiontype == "bool")
+            } else if (functiontype == "bool ")
             {
                 this.filecontent += "Boolean ";
-            } else if (functiontype == "void")
+            } else if (functiontype == "void ")
             {
                 this.filecontent += "void ";
             }
@@ -153,13 +170,18 @@ namespace CBlunt.ANTLR
             if (variabletype == "number")
             {
                 this.filecontent += "double ";
-            } else if (variabletype == "text")
+            } else if (variabletype == "text ")
             {
                 this.filecontent += "string ";
-            } else if (variabletype == "bool")
+            } else if (variabletype == "bool ")
             {
                 this.filecontent += "Boolean ";
             }
+        }
+
+        private void AddText(string text)
+        {
+            this.filecontent += text + " ";
         }
     }
 }
