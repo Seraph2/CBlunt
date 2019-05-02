@@ -224,6 +224,9 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitExpression");
 #endif
+
+            /// TODO: HANDLE RECURSION HERE
+
             if (context.parameter() != null)
                 Visit(context.parameter());
 
