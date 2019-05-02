@@ -18,7 +18,7 @@ statement
 	;
 
 functioncall
-	: ID '(' ((parameter ',')* parameter)? ')' // F(123,"test",false)
+	: ID '(' ((expression ',')* expression)? ')' // F(123,"test",false, 12 + 34);
 	;
 
 iterative
@@ -47,18 +47,17 @@ expression
 	;
 
 calculation
-	: operator parameter // + 5
-	| operator '(' expression ')' // + (5 - 9)
+	: operator (parameter | '(' expression ')') // 5 + 2 + 5 + 7 + (1231231 - 5)
 	;
 
 condition
-	: '!'? (logic | ID) (conditional condition)* // !b, !5 > 2. Potentially revise second one
+	: ( logic | ID) (conditional condition)* // !b, !5 > 2. Potentially revise second one. if (!5 > 2)
+	| '!' ( '(' logic ')' | ID) (conditional condition)*
 	;
 
 logic
 	: expression relational expression
 	;
-
 
 relational
 	: '=='

@@ -35,26 +35,13 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
-            var declarationIter = 0;
-            var functionIter = 0;
+            // Start by visiting declarations. This is because of the global scope
+            for (int i = 0; i < context.declaration().Count(); ++i)
+                Visit(context.declaration(i));
 
-            /// TODO: Very hackfixy still. Rule: (function | declaration ';')+
-            for (var i = 0; i < context.ChildCount; ++i)
-            {
-                if (context.declaration(declarationIter) != null)
-                {
-                    Visit(context.declaration(declarationIter));
-                    ++declarationIter;
-                    continue;
-                }
-                    
-                    
-                if (context.function(functionIter) != null)
-                {
-                    Visit(context.function(functionIter));
-                    ++functionIter;
-                }
-            }
+            // Then begin iterating over functions
+            for (int i = 0; i < context.function().Count(); ++i)
+                Visit(context.function(i));
 
 #if DEBUG
             Console.WriteLine("Finished semantic checking");
@@ -83,15 +70,12 @@ namespace CBlunt.ANTLR
             // If the parent's rule is "start", the declared variable needs to be added to the class scope, otherwise we add it to the method's scope
             if (parentRuleIndex == CBluntParser.RULE_start)
             {
-                // Check whether the variable exists already in the class scope. Give an error if it exists
+                // Check whether the variable exists already in the class scope. Give an error if it does so
                 if (FindDeclaredVariableInClassScope(variableName))
                 {
                     SyntaxError(context, "Variable with name " + variableName + " already exists");
                     return 0;
                 }
-
-                // Add the new variable to the class level and create variable properties for it
-                _classScopeVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
             }
             else
             {
@@ -101,14 +85,14 @@ namespace CBlunt.ANTLR
                     SyntaxError(context, "Variable with name " + variableName + " already exists in current or parent scope");
                     return 0;
                 }
-
-                // Add the new variable to the last linked list node, and initialize a dictionary to it
-                _methodScopeLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
             }
 
-            // If no expression is found, simply return as the variable cannot be type-checked against
+            // If no expression is found, simply create the variable and return as the variable cannot be type-checked against
             if (context.expression() == null)
+            {
+                CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
                 return 0;
+            }
 
             // Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
             var contextExpressionParameter = context.expression().parameter();
@@ -133,15 +117,17 @@ namespace CBlunt.ANTLR
                 if (variablePropeties == null)
                     return 1;
 
+                if (!variablePropeties.Initialized)
+                {
+                    SyntaxError(context, "Cannot assign the value of variable " + contextExpressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet.");
+                    return 1;
+                }
+
                 foundParameterType = variablePropeties.Type;
             }
 
             if (contextExpressionParameter.functioncall() != null)
             {
-                // Helper variables for accessing deeper visitors
-                var functionCall = contextExpressionParameter.functioncall();
-                var functionCallParameter = functionCall.parameter();
-
                 // The name of the method
                 var methodName = contextExpressionParameter.functioncall().ID().GetText();
 
@@ -161,6 +147,8 @@ namespace CBlunt.ANTLR
                 SyntaxError(context, "Expected " + variableType + ", got " + foundParameterType);
                 return 1;
             }
+
+            CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
 
             return 0;
         }
@@ -192,29 +180,20 @@ namespace CBlunt.ANTLR
 
             // Check whether the method contains parameters. If so, add the parameter types to the methodProperties and add the variables
             // to the main scope of the method
-            if (context.children.Count > 5)
+            for (int i = 0; i < context.variabletype().Count(); ++i)
             {
-                var parameterObjects = context.children.Count - 5;
+                // Get the parameter's type
+                var parameterType = context.variabletype(i).GetText();
 
-                // Start from 3 as that is the first potential parameter. Addition-operator 2 on i to skip the comma
-                for (int i = 3; i < context.children.Count - 2; i += 2)
-                {
-                    var parameterType = context.children[i].GetText();
-                    var parameterName = context.children[++i].GetText();
+                // Get the parameter's name. This is +1 due to that the first ID is the method's name
+                var parameterName = context.ID(i + 1).GetText();
 
-                    // Add the parameter type to the list of parameter types
-                    methodProperties.ParameterTypes.Add(parameterType);
+                // Add the parameter type to the list of parameter types
+                methodProperties.ParameterTypes.Add(parameterType);
 
-                    // Add the variable along with properties to the method scope
-                    _methodScopeLinkedList.Last.Value.Add(parameterName, new VariableProperties(parameterType));
-                }
+                // Add the variable along with properties to the method scope
+                _methodScopeLinkedList.Last.Value.Add(parameterName, new VariableProperties(parameterType));
             }
-
-
-            /// TODO: Check also if method exists already which will have been done if it has been discovered earlier
-            /// If so, do not override the dictionary, simply check the methodProperties against the discovered one
-
-            /// TODO: If method has already existed due to discovery nodes, now verify if discovery nodes were true
 
             // Visit the block of the function
             Visit(context.block());
@@ -232,10 +211,9 @@ namespace CBlunt.ANTLR
 #endif
 
              // Iterate over all potential statements in the block. There can be 0 statements here
-            for (var i = 0; i < context.ChildCount; ++i)
+            for (var i = 0; i < context.statement().Count(); ++i)
             {
-                if (context.statement(i) != null)
-                    Visit(context.statement(i));
+                Visit(context.statement(i));
             }
 
             return 0;
@@ -287,47 +265,17 @@ namespace CBlunt.ANTLR
 
             // First iterate over the current scope and all previous scopes
             var currNode = _methodScopeLinkedList.Last;
-            var variableExists = false;
 
             // The properties of the variable we found
             VariableProperties variableProperties = null;
 
-            // In order to edit a variable, we first need to check the method's scopes. If it was not found here, the class scope is checked
-            while (true)
-            {
-                // Get the value (aka. dictionary) of the scope
-                var scopeVariables = currNode.Value;
 
-                // Stop the loop if the variable has been found in the current scope
-                if (scopeVariables.ContainsKey(variableName))
-                {
-                    variableProperties = scopeVariables[variableName];
-                    variableExists = true;
-                    break;
-                }
+            variableProperties = GetDeclaredVariable(variableName);
 
-                // If there exists no previous node, stop the loop
-                if (currNode.Previous == null)
-                    break;
-
-                currNode = currNode.Previous;
-            }
-
-            // If the variable was still not found after checking the method scope, we check the class scope
-            if (!variableExists)
-            {
-                if (_classScopeVariablesDictionary.ContainsKey(variableName))
-                {
-                    variableProperties = _classScopeVariablesDictionary[variableName];
-                    variableExists = true;
-                }
-            }
-
-            // If the variable still was not found, cause an error
-            if (!variableExists)
+            if (variableProperties == null)
             {
                 SyntaxError(context, "Variable with name " + variableName + " cannot be assigned a value as it does not exist.");
-                return 0;
+                return 1;
             }
 
             // Get the expected assignment value, aka the value we expect the variable to be assigned
@@ -457,27 +405,24 @@ namespace CBlunt.ANTLR
             // Get the method's properties
             var methodProperties = SymbolTable.MethodDictionary[methodName];
 
-            // Check if the method takes parameters. If the functioncall sends a parameter and the method does not take any, stop and give error
-            if (context.parameter(0) != null)
+            // If there exists expressions, and the method does not actually take any parameters, stop and give syntax error
+            if (context.expression().Count() > 0 && methodProperties.ParameterTypes.Count == 0)
             {
-                if (methodProperties.ParameterTypes.Count == 0)
-                {
-                    SyntaxError(context, "Method with name " + methodName + " does not take any parameters");
-                    return 1;
-                }
+                SyntaxError(context, "Method with name " + methodName + " does not take any parameters");
+                return 1;
             }
 
             // Get the nice name for the method
             var methodNiceName = GetMethodNiceName(methodName, methodProperties.ParameterTypes);
 
             // Compare the method's parameters with the found parameters to see whether they match
-            int parameterIter = 0;
-            while (context.parameter(parameterIter) != null)
+            for (int i = 0; i < context.expression().Count(); ++i)
             {
                 var parameterType = "";
-                var parameterCount = parameterIter + 1;
+                var parameterCount = i + 1;
 
-                var functionCallParameterType = context.parameter(parameterIter);
+                /// TODO: Handle calculation recursively
+                var functionCallParameterType = context.expression(i).parameter();
 
                 if (functionCallParameterType.STRING() != null)
                     parameterType = "text";
@@ -488,7 +433,6 @@ namespace CBlunt.ANTLR
                 if (functionCallParameterType.truth() != null)
                     parameterType = "bool";
 
-                
                 // Get the variable, if null we return. Otherwise the variable's type is assigned
                 if (functionCallParameterType.ID() != null)
                 {
@@ -499,7 +443,7 @@ namespace CBlunt.ANTLR
 
                     parameterType = variableProperties.Type;
                 }
-                    
+                
                 if (functionCallParameterType.functioncall() != null)
                 {
                     // Handle functioncall recursively
@@ -514,10 +458,11 @@ namespace CBlunt.ANTLR
                     parameterType = methodHere.Type;
                 }
 
-                // If nothing matched, something is seriously wrong
+                // If nothing matched, we got a problem
                 if (parameterType == "")
                 {
                     SyntaxError(context, "Nothing matched parameter number " + parameterCount + " for method " + methodNiceName);
+                    Console.WriteLine("Houston, we got a problem");
                     return 1;
                 }
 
@@ -527,26 +472,41 @@ namespace CBlunt.ANTLR
                     return 1;
                 }
 
-                var expectedMethodParameterType = methodProperties.ParameterTypes[parameterIter];
+                var expectedMethodParameterType = methodProperties.ParameterTypes[i];
 
                 if (expectedMethodParameterType != parameterType)
                 {
                     SyntaxError(context, "Method " + methodNiceName + " got type " + parameterType + " as parameter number " + parameterCount + ", expected " + expectedMethodParameterType);
                     return 1;
                 }
-
-                ++parameterIter;
             }
 
-            if (methodProperties.ParameterTypes.Count > parameterIter)
+            if (methodProperties.ParameterTypes.Count > context.expression().Count())
             {
-                SyntaxError(context, "Method " + methodNiceName + " got " + parameterIter + " parameters, expected " + methodProperties.ParameterTypes.Count);
+                SyntaxError(context, "Method " + methodNiceName + " got " + context.expression().Count() + " parameters, expected " + methodProperties.ParameterTypes.Count);
                 return 1;
             }
 
             return base.VisitFunctioncall(context);
         }
 
+        /*
+         * Create a variable in appropriate scope
+         */
+        void CreateVariable(int parentRuleIndex, string variableName, string variableType, string variableValue)
+        {
+            // Finally, add the variable to the appropriate place
+            if (parentRuleIndex == CBluntParser.RULE_start)
+            {
+                // Add the new variable to the class level and create variable properties for it
+                _classScopeVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
+            }
+            else
+            {
+                // Add the new variable to the last linked list node, and initialize a dictionary to it
+                _methodScopeLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
+            }
+        }
 
         /*
          * Get a method as a nice name
@@ -556,15 +516,12 @@ namespace CBlunt.ANTLR
             // Add a parenthese
             methodName += "(";
 
-
             // Only perform iteration if there actually exists parameters to this function
             if (methodParameters.Count > 0)
             {
                 // Iterate over all types of found parameters, write its type along with a comma
                 foreach (var paramType in methodParameters)
-                {
                     methodName += paramType + ",";
-                }
 
                 // Remove the last comma
                 methodName = methodName.Remove(methodName.Length - 1);
@@ -574,7 +531,6 @@ namespace CBlunt.ANTLR
 
             return methodName;
         }
-
 
         /*
          * Get a method's properties
