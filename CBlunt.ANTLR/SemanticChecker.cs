@@ -35,11 +35,11 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
-            // Start by visiting declarations. This is because of the global scope
+            // Start by visiting declarations. This is done because of the global scope
             for (int i = 0; i < context.declaration().Count(); ++i)
                 Visit(context.declaration(i));
 
-            // Then begin iterating over functions
+            // Then begin visiting methods
             for (int i = 0; i < context.function().Count(); ++i)
                 Visit(context.function(i));
 
@@ -74,7 +74,7 @@ namespace CBlunt.ANTLR
                 if (FindDeclaredVariableInClassScope(variableName))
                 {
                     SyntaxError(context, "Variable with name " + variableName + " already exists");
-                    return 0;
+                    return 1;
                 }
             }
             else
@@ -83,7 +83,7 @@ namespace CBlunt.ANTLR
                 if (FindDeclaredVariableInMethodScope(variableName))
                 {
                     SyntaxError(context, "Variable with name " + variableName + " already exists in current or parent scope");
-                    return 0;
+                    return 1;
                 }
             }
 
@@ -277,7 +277,7 @@ namespace CBlunt.ANTLR
 
             if (variableProperties == null)
             {
-                SyntaxError(context, "Variable with name " + variableName + " cannot be assigned a value as it does not exist.");
+                SyntaxError(context, "Variable with name " + variableName + " cannot be assigned a value as it does not exist");
                 return 1;
             }
 
@@ -372,6 +372,8 @@ namespace CBlunt.ANTLR
                 return 0;
             }
 
+            variableProperties.Initialized = true;
+
             return base.VisitVariableedit(context);
         }
 
@@ -440,6 +442,12 @@ namespace CBlunt.ANTLR
 
                     if (variableProperties == null)
                         return 1;
+
+                    if (!variableProperties.Initialized)
+                    {
+                        SyntaxError(context, "Cannot pass variable " + functionCallParameterType.GetText() + " to method " + methodName + " as it has not been initialized yet.");
+                        return 1;
+                    }
 
                     parameterType = variableProperties.Type;
                 }
