@@ -4,13 +4,13 @@ grammar CBlunt;
 @lexer::header {#pragma warning disable 3021}
 
 start
-    : (function | declaration ';')+
+    : (function | declaration ';')+ // Global scope
     ;
 
-block : '{' (statement)* '}' ;
+block : '{' (statement)* '}' ; // { ... }
 
 function
-	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block
+	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block // void F(number a) { ... }
 	;
 
 statement
@@ -18,46 +18,45 @@ statement
 	;
 
 functioncall
-	: ID '(' ((parameter ',')* parameter)? ')'
+	: ID '(' ((parameter ',')* parameter)? ')' // F(123,"test",false)
 	;
 
 iterative
-	: 'while' '(' condition ')' block
-	| 'for' '(' (declaration | variableedit) ';' condition ';' variableedit ')' block
+	: 'while' '(' condition ')' block // while (2 > 1) { ... }
+	| 'for' '(' (declaration | variableedit) ';' condition ';' variableedit ')' block // Init, condition, post-block
 	;
 
 selective
-	: 'if' '(' condition ')' block elsestmt?
+	: 'if' '(' condition ')' block elsestmt? // Else is not required but can be used
 	;
 
 elsestmt
-	: 'else' (block | selective)
+	: 'else' (block | selective) // Leads to a block or another if (that is technically another block)
 	;
 
 declaration
-    : variabletype ID ('=' expression)?
+    : variabletype ID ('=' expression)? // text a = "hello";
     ;
 
 variableedit
-	: ID equals expression
+	: ID equals expression // a = "edited";
 	;
 
 expression
-	: parameter calculation*
-	| parameter
+	: parameter calculation* // 1 + 2 + 3 + (5 + 2)
 	;
 
 calculation
-	: operator parameter
-	| operator '(' expression ')'
+	: operator parameter // + 5
+	| operator '(' expression ')' // + (5 - 9)
 	;
 
 condition
-	: '!'? (logic | ID) (conditional condition)*
+	: '!'? (logic | ID) (conditional condition)* // !b, !5 > 2. Potentially revise second one
 	;
 
 logic
-	: (expression relational expression)
+	: expression relational expression
 	;
 
 
@@ -125,7 +124,7 @@ COMMENT
 	: '/*' .*? '*/' -> skip
 	;
 
-WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, and newlines
 
 operator
     : '+'
