@@ -29,6 +29,10 @@ namespace CBlunt.ANTLR
             for (int count = 0; count < context.ChildCount; ++count)
             {
                 Visit(context.GetChild(count));
+                if (context.GetChild(count).GetText() == ";")
+                {
+                    this.AddSemicolon();
+                }
             }
             this.filecontent += "} }";
             //TODO: Rewrite to loop through the list for each entry instead.
@@ -59,39 +63,48 @@ namespace CBlunt.ANTLR
 
         public override int VisitFunction([NotNull] CBluntParser.FunctionContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitFunction");
+#endif
+
             if (context.ID(0).GetText() == "Main")
             {
-                this.filecontent += "static void Main() {\n";
+                this.filecontent += "static void Main()\n";
             } else
             {
                 this.ConvertFunctionType(context.functiontype().GetText());
-                this.filecontent += context.ID(0).GetText() + "(";
+                this.AddText(context.ID(0).GetText() + "(");
                 
                 for (int counter = 0; counter < context.variabletype().Count(); ++counter)
                 {
-                    this.AddText(context.variabletype(counter).GetText());
+                    Visit(context.variabletype(counter));
                     this.AddText(context.ID(counter + 1).GetText());
                     if (counter < context.variabletype().Count() - 1) {
                         this.AddText(",");
                     }
                 }
 
-                this.filecontent += ") {\n";
+                this.AddText(")");
 
-                for (int count = 0; count < context.ChildCount; ++count)
-                {
-                    Visit(context.GetChild(count));
-                }
-
-                this.filecontent += "}\n";
+                Visit(context.block());
             }
 
             return 0;
         }
 
+        public override int VisitVariabletype([NotNull] CBluntParser.VariabletypeContext context)
+        {
+            this.ConvertVariableType(context.GetChild(0).GetText());
+            return 0;
+        }
+
         //Update after merging Jakob's branch with the updated functioncall rules.
+        //Fix multicommas reee
         public override int VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitFunctioncall");
+#endif
             this.filecontent += context.ID().GetText() + " (";
             for (int count = 1; count < context.ChildCount; ++count)
             {
@@ -107,24 +120,41 @@ namespace CBlunt.ANTLR
 
         public override int VisitStatement([NotNull] CBluntParser.StatementContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitStatement");
+#endif
             for (int counter = 0; counter < context.children.Count; ++counter)
             {
                 Visit(context.GetChild(counter));
+                if (context.GetChild(counter).GetText() == ";")
+                {
+                    this.AddSemicolon();
+                }
             }
             return 0;
         }
 
         public override int VisitParameter([NotNull] CBluntParser.ParameterContext context)
         {
-            for (int counter = 0; counter < context.children.Count; ++counter)
+#if DEBUG
+            Console.WriteLine("VisitParameter");
+#endif
+            if (context.functioncall() != null)
             {
-                Visit(context.GetChild(counter));
+                Visit(context.functioncall());
+            } else
+            {
+                this.AddText(context.GetChild(0).GetText());
             }
             return 0;
         }
 
         public override int VisitVariableedit([NotNull] CBluntParser.VariableeditContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitVariableedit");
+
+#endif
             this.AddText(context.GetChild(0).GetText());
             for (int counter = 0; counter < context.children.Count; ++counter)
             {
@@ -135,6 +165,9 @@ namespace CBlunt.ANTLR
 
         public override int VisitEquals([NotNull] CBluntParser.EqualsContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitEquals");
+#endif
             for(int counter = 0; counter < context.ChildCount; ++counter)
             {
                 this.AddText(context.GetChild(counter).GetText());
@@ -144,6 +177,9 @@ namespace CBlunt.ANTLR
 
         public override int VisitExpression([NotNull] CBluntParser.ExpressionContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitExpression");
+#endif
             Visit(context.parameter());
             for(int counter = 0; counter < context.calculation().Count(); ++counter)
             {
@@ -154,14 +190,63 @@ namespace CBlunt.ANTLR
 
         public override int VisitCalculation([NotNull] CBluntParser.CalculationContext context)
         {
-            
+#if DEBUG
+            Console.WriteLine("VisitCalculation");
+#endif
+            //operator has @ because operator is normally a reserved keyword
             Visit(context.@operator());
+            //Visits either a parameter or expression
+            Visit(context.GetChild(1));
             return 0;
         }
 
+        //TODO: MAKE
         public override int VisitOperator([NotNull] CBluntParser.OperatorContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitOperator");
+#endif
             return base.VisitOperator(context);
+        }
+
+        public override int VisitIterative([NotNull] CBluntParser.IterativeContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitIterative");
+#endif
+            if (context.GetChild(0).GetText() == "while")
+            {
+                this.AddText("while (");
+                Visit(context.condition());
+                this.AddText(") {");
+            } 
+            else if (context.GetChild(0).GetText() == "for")
+            {
+
+            }
+            return 0;
+        }
+
+        public override int VisitCondition([NotNull] CBluntParser.ConditionContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitCondition");
+#endif
+            return base.VisitCondition(context);
+        }
+
+        public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitBlock");
+#endif
+            AddText("{\n");
+            for (int count = 0; count < context.ChildCount; ++count)
+            {
+                Visit(context.GetChild(count));
+            }
+            AddText("}\n");
+            return 0;
         }
 
         public CBluntCodeGenerator() {
@@ -182,11 +267,11 @@ namespace CBlunt.ANTLR
                 this.filecontent += "double ";
             } else if (functiontype == "text ")
             {
-                this.filecontent += "string ";
+                this.filecontent += "string";
             } else if (functiontype == "bool ")
             {
-                this.filecontent += "Boolean ";
-            } else if (functiontype == "void ")
+                this.filecontent += "Boolean";
+            } else if (functiontype == "void")
             {
                 this.filecontent += "void ";
             }
@@ -197,10 +282,10 @@ namespace CBlunt.ANTLR
             if (variabletype == "number")
             {
                 this.filecontent += "double ";
-            } else if (variabletype == "text ")
+            } else if (variabletype == "text")
             {
                 this.filecontent += "string ";
-            } else if (variabletype == "bool ")
+            } else if (variabletype == "bool")
             {
                 this.filecontent += "Boolean ";
             }
@@ -209,6 +294,12 @@ namespace CBlunt.ANTLR
         private void AddText(string text)
         {
             this.filecontent += text + " ";
+        }
+
+        private void AddSemicolon(Boolean withnewline = true)
+        {
+            this.filecontent += ";";
+            if (withnewline) { this.filecontent += "\n"; } 
         }
     }
 }
