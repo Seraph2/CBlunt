@@ -372,9 +372,6 @@ namespace CBlunt.ANTLR
                 return 0;
             }
 
-            // Finally, set the new value of the variable. This is set out of sheer principle
-            variableProperties.Value = assignmentValue;
-
             return base.VisitVariableedit(context);
         }
 

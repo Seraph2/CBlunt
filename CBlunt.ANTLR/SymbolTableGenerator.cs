@@ -82,10 +82,6 @@ namespace CBlunt.ANTLR
         // The type of the variable (number, text, bool etc.)
         public string Type { get; set; }
 
-        // The value of the variable (true, false, 0, "test" etc.)
-        /// REMOVE
-        public string Value { get; set; }
-
         // Determine whether the variable has been initialized or not (aka null)
         // It is impossible to initialize a variable with null in CBlunt, therefore this only applies to ex:
         // number a;
