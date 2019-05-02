@@ -17,15 +17,9 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
-            int iter = 0;
-
-            while (context.function(iter) != null)
-            {
-                Visit(context.function(iter));
-
-                ++iter;
-            }
-
+            // Only visit functions as that is required of symboltable so far
+            for (int i = 0; i < context.function().Count(); ++i)
+                Visit(context.function(i));
 
 #if DEBUG
             Console.WriteLine("Finished symbol table generation");
