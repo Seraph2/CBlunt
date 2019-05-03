@@ -114,7 +114,7 @@ namespace CBlunt.ANTLR
             for (int count = 1; count < context.ChildCount; ++count)
             {
                 Visit(context.GetChild(count));
-                if (context.GetChild(count).GetText() != "(" && context.GetChild(count).GetText() != ")")
+                if (context.GetChild(count).GetText() == ",")
                 {
                     this.filecontent += ", ";
                 }
@@ -318,6 +318,16 @@ namespace CBlunt.ANTLR
                 Visit(context.GetChild(count));
             }
             AddText("}\n");
+            return 0;
+        }
+
+        public override int VisitFunctiontype([NotNull] CBluntParser.FunctiontypeContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunctiontype");
+#endif
+            Visit(context.GetChild(0));
+            if(context.GetText() == "void")
             return 0;
         }
 
