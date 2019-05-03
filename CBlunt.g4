@@ -51,8 +51,8 @@ calculation
 	;
 
 condition
-	: ( logic | ID) (conditional condition)* // !b, !5 > 2. Potentially revise second one. if (!5 > 2)
-	| '!' ( '(' logic ')' | ID) (conditional condition)*
+	: (logic | truth | ID) (conditional condition)* // !b, !5 > 2. Potentially revise second one. if (!5 > 2)
+	| '!' ('(' logic ')' | truth | ID) (conditional condition)*
 	;
 
 logic
