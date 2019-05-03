@@ -390,6 +390,7 @@ namespace CBlunt.ANTLR
                 return 1;
             }
 
+            // If all checks passes, variable is correctly initialized
             variableProperties.Initialized = true;
 
             return base.VisitVariableedit(context);
@@ -459,7 +460,11 @@ namespace CBlunt.ANTLR
                     var variableProperties = GetDeclaredVariable(functionCallParameterType.GetText());
 
                     if (variableProperties == null)
+                    {
+                        SyntaxError(context, "Passed variable " + functionCallParameterType.GetText() + " as parameter " + parameterCount + " to method " + methodNiceName + " does not exist");
                         return 1;
+                    }
+                        
 
                     if (!variableProperties.Initialized)
                     {
