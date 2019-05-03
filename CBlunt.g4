@@ -44,7 +44,6 @@ variableedit
 	
 expression
 	: parameter calculation*
-	| parameter
 	;
 	
 calculation

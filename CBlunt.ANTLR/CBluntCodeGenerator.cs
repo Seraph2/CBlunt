@@ -56,8 +56,12 @@ namespace CBlunt.ANTLR
 #endif
             this.ConvertVariableType(context.variabletype().GetText());
 
-            this.AddText(context.ID().GetText() + " =");
-            Visit(context.expression());
+            this.AddText(context.ID().GetText());
+            if (context.GetChild(2).GetText() == "=")
+            {
+                this.AddText("=");
+                Visit(context.expression());
+            }
             return 0;
         }
 
@@ -86,8 +90,9 @@ namespace CBlunt.ANTLR
 
                 this.AddText(")");
 
-                Visit(context.block());
+                
             }
+            Visit(context.block());
 
             return 0;
         }
@@ -139,7 +144,7 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitParameter");
 #endif
-            if (context.functioncall() != null)
+            if (context.children.Count() > 1)
             {
                 Visit(context.functioncall());
             } else
@@ -155,12 +160,10 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitVariableedit");
 
 #endif
-            this.AddText(context.GetChild(0).GetText());
-            for (int counter = 0; counter < context.children.Count; ++counter)
-            {
-                Visit(context.GetChild(counter));
-            }
-            return base.VisitVariableedit(context);
+            this.AddText(context.ID().GetText());
+            Visit(context.equals());
+            Visit(context.expression());
+            return 0;
         }
 
         public override int VisitEquals([NotNull] CBluntParser.EqualsContext context)
@@ -168,10 +171,7 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitEquals");
 #endif
-            for(int counter = 0; counter < context.ChildCount; ++counter)
-            {
-                this.AddText(context.GetChild(counter).GetText());
-            }
+            this.AddText(context.GetText());
             return base.VisitEquals(context);
         }
 
@@ -225,13 +225,13 @@ namespace CBlunt.ANTLR
             {
                 this.AddText("for (");
                 for (int counter = 2; counter < 8; ++counter) {
-                    Visit(context.GetChild(counter));
                     if (context.GetChild(counter).GetText() == ";")
                     {
                         this.AddSemicolon(false);
-                    }
+                    } else { Visit(context.GetChild(counter)); }
                 }
                 this.AddText(")");
+                Visit(context.block());
             }
             return 0;
         }
@@ -308,7 +308,7 @@ namespace CBlunt.ANTLR
         private void AddSemicolon(Boolean withnewline = true)
         {
             this.filecontent += ";";
-            if (withnewline) { this.filecontent += "\n"; } 
+            if (withnewline) { this.filecontent += "\n"; } else { this.AddText(""); }
         }
     }
 }
