@@ -47,17 +47,13 @@ namespace CBlunt.ANTLR
             // The list of parameter types the method has
             var methodTypes = new List<string>();
 
-            int iter = 0;
-            while (context.variabletype(iter) != null)
+            for (int i = 0; i < context.variabletype().Count(); ++i)
             {
                 // Get the parameter type
-                var methodParameter = context.variabletype(iter).GetText();
+                var methodParameter = context.variabletype(i).GetText();
 
                 // Add it to the list of parameter types the method has
                 methodTypes.Add(methodParameter);
-
-                // Increment iter
-                ++iter;
             }
 
             // Create MethodProperties object
