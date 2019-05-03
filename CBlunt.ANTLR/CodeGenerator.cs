@@ -199,14 +199,15 @@ namespace CBlunt.ANTLR
             Visit(context.GetChild(1));
             return 0;
         }
-
-        //TODO: MAKE
+        
         public override int VisitOperator([NotNull] CBluntParser.OperatorContext context)
         {
 #if DEBUG
             Console.WriteLine("VisitOperator");
 #endif
-            return base.VisitOperator(context);
+            this.AddText(context.GetText());
+
+            return 0;
         }
 
         public override int VisitIterative([NotNull] CBluntParser.IterativeContext context)
@@ -238,6 +239,9 @@ namespace CBlunt.ANTLR
 
         public override int VisitSelective([NotNull] CBluntParser.SelectiveContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitSelective");
+#endif
             this.AddText(context.GetChild(0).GetText());
             this.AddText(context.GetChild(1).GetText());
             Visit(context.condition());
@@ -251,7 +255,56 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitCondition");
 #endif
-            return base.VisitCondition(context);
+            for (int counter = 0; counter < context.children.Count(); ++counter)
+            {
+                Visit(context.GetChild(counter));
+                if (context.GetChild(counter) == context.ID()) { AddText(context.ID().GetText()); }
+                if (context.GetChild(counter).GetText() == "!") { this.AddText("!"); }
+                if (context.GetChild(counter).GetText() == "(") { this.AddText("("); }
+                if (context.GetChild(counter).GetText() == ")") { this.AddText(")"); }
+            }
+
+            return 0;
+        }
+
+        public override int VisitLogic([NotNull] CBluntParser.LogicContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitLogic");
+#endif
+            for(int counter = 0; counter < context.children.Count(); ++counter)
+            {
+                Visit(context.GetChild(counter));
+
+            }
+            return 0;
+        }
+
+        public override int VisitRelational([NotNull] CBluntParser.RelationalContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitRelational");
+#endif
+            this.AddText(context.GetText());
+            return 0;
+        }
+
+        public override int VisitConditional([NotNull] CBluntParser.ConditionalContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitConditional");
+#endif
+            this.AddText(context.GetText());
+            return 0;
+        }
+
+        public override int VisitTruth([NotNull] CBluntParser.TruthContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitTruth");
+#endif
+            this.AddText(context.GetText());
+            return 0;
         }
 
         public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
@@ -268,7 +321,7 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
-        public CBluntCodeGenerator() {
+        public CodeGenerator() {
             string temppath = "Test";
             int count;
             for(count = 0; File.Exists(temppath); ++count){

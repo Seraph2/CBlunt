@@ -18,8 +18,8 @@ namespace CBlunt.ANTLR
         private static string FileText;
         public static void Main()
         {
-            InitializeFileSystemWatcher();
-            LoadFile("SampleCode.txt");
+            //InitializeFileSystemWatcher();
+            LoadFile("SampleCode2.txt");
 
             // Continually loop forever to keep the program (and watcher) alive
             while (true)
@@ -101,7 +101,7 @@ namespace CBlunt.ANTLR
                 // Begin compiler
                 //GenerateSymbolTable(fileText);
                 //CheckSemantics(fileText);
-                GenerateCode(fileText);
+                GenerateCode();
             }
             catch (Exception exception)
             {
