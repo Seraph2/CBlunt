@@ -16,10 +16,13 @@ namespace CBlunt.ANTLR
     {
         private static FileSystemWatcher _watcher;
         private static string FileText;
+        private static string ScriptDirectory = "scripts";
+
         public static void Main()
         {
-            InitializeFileSystemWatcher();
-            LoadFile("SampleCode.txt");
+            LoadScripts(ScriptDirectory);
+
+            InitializeFileSystemWatcher(ScriptDirectory);
 
             // Continually loop forever to keep the program (and watcher) alive
             while (true)
@@ -70,8 +73,13 @@ namespace CBlunt.ANTLR
             new CodeGenerator().Visit(parser.start());
         }
 
-        private static void DisplayError(Exception ex)
+        private static void DisplayError(string filePath, Exception ex)
         {
+            // Write out the filename only
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            Console.WriteLine("File: " + fileName);
+
+            // Show the error
             Console.WriteLine("Parser error:");
             Console.WriteLine(ex.Message);
         }
@@ -81,21 +89,38 @@ namespace CBlunt.ANTLR
             LoadFile(e.FullPath);
         }
 
+        private static void LoadScripts(string scriptDirectory)
+        {
+            // Create the script directory if it does not exist
+            if (!Directory.Exists(scriptDirectory))
+                Directory.CreateDirectory(scriptDirectory);
+
+            foreach (var file in Directory.GetFiles(scriptDirectory))
+            {
+                // Load the file, CBlunt is checked against in LoadFile
+                LoadFile(file);
+            }
+        }
+
         private static void LoadFile(string filePath)
         {
+            // Skip files that are not CBlunt
+            if (Path.GetExtension(filePath) != ".cb")
+                return;
+
             // Clear console for clean output
             Console.Clear();
 
             // Clean the symbol table
             SymbolTable.MethodDictionary.Clear();
 
-            // Write out timestamp
+            // Write out timestamp to simplify seeing filechanges
             Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
 
             // Try-catch is used because an exception can be thrown
             try
             {
-                // Read text from the changed file
+                // Read text from the file
                 FileText = File.ReadAllText(filePath);
 
                 // Begin compiler
@@ -105,14 +130,14 @@ namespace CBlunt.ANTLR
             }
             catch (Exception exception)
             {
-                DisplayError(exception);
+                DisplayError(filePath, exception);
             }
         }
 
-        private static void InitializeFileSystemWatcher()
+        private static void InitializeFileSystemWatcher(string scriptDirectory)
         {
              // Initialize watcher in current directory
-            _watcher = new FileSystemWatcher(".");
+            _watcher = new FileSystemWatcher("./" + scriptDirectory);
             
              // Add the method to execute when a file is changed
             _watcher.Changed += new FileSystemEventHandler(Watcher_Changed);
