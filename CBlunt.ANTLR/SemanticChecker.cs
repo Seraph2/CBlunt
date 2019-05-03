@@ -197,8 +197,14 @@ namespace CBlunt.ANTLR
                 // Add the parameter type to the list of parameter types
                 methodProperties.ParameterTypes.Add(parameterType);
 
+                // All parameters are guranteed to be initialized, set the initialized flag
+                var variableProperties = new VariableProperties(parameterType)
+                {
+                    Initialized = true
+                };
+
                 // Add the variable along with properties to the method scope
-                _methodScopeLinkedList.Last.Value.Add(parameterName, new VariableProperties(parameterType));
+                _methodScopeLinkedList.Last.Value.Add(parameterName, variableProperties);
             }
 
             // Visit the block of the function
@@ -287,46 +293,53 @@ namespace CBlunt.ANTLR
             }
 
             // Get the expected assignment value, aka the value we expect the variable to be assigned
-            var contextExpressionParameter = context.expression().parameter();
+            var expressionParameter = context.expression().parameter();
             var assignmentType = "";
 
-            if (contextExpressionParameter.STRING() != null)
+            if (expressionParameter.STRING() != null)
                 assignmentType = "text";
 
-            if (contextExpressionParameter.NUMBER() != null)
+            if (expressionParameter.NUMBER() != null)
                 assignmentType = "number";
 
-            if (contextExpressionParameter.truth() != null)
+            if (expressionParameter.truth() != null)
                 assignmentType = "bool";
 
-            if (contextExpressionParameter.ID() != null)
+            if (expressionParameter.ID() != null)
             {
-                var assignmentVariableProperties = GetDeclaredVariable(contextExpressionParameter.ID().GetText());
+                var assignmentVariableProperties = GetDeclaredVariable(expressionParameter.ID().GetText());
 
                 if (assignmentVariableProperties == null)
+                {
+                    SyntaxError(context, "Cannot assign the value of variable " + expressionParameter.ID().GetText() + " to variable " + variableName + " as it does not exist");
                     return 1;
+                }
 
                 // Determine whether the variable we are trying to assign has been initialized
                 // We can assign an initialized variable to an uninitialized, but not an uninitialized variable to an initialized variable
                 if (!assignmentVariableProperties.Initialized)
                 {
-                    SyntaxError(context, "Cannot assign the value of variable " + contextExpressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet.");
+                    SyntaxError(context, "Cannot assign the value of variable " + expressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet");
                     return 1;
                 }
 
                 assignmentType = assignmentVariableProperties.Type;
             }
 
-            if (contextExpressionParameter.functioncall() != null)
+            if (expressionParameter.functioncall() != null)
             {
-                // Visit the functioncall for potential recursive handling
-                if (Visit(contextExpressionParameter.functioncall()) == 1)
+                // Visit the functioncall for potential recursive handling. If it returns 1 it means that an error has occured and
+                // checking should stop
+                if (Visit(expressionParameter.functioncall()) == 1)
                     return 1;
 
-                var methodProperties = GetMethodProperties(contextExpressionParameter.functioncall().ID().GetText());
+                var methodProperties = GetMethodProperties(expressionParameter.functioncall().ID().GetText());
 
                 if (methodProperties == null)
+                {
+                    SyntaxError(context, "Method with name " + expressionParameter.functioncall().ID().GetText() + " does not exist");
                     return 1;
+                }
 
                 assignmentType = methodProperties.Type;
             }
@@ -341,7 +354,7 @@ namespace CBlunt.ANTLR
                     if (assignmentType != "number")
                     {
                         SyntaxError(context, "Cannot use addition assignment operator on a type " + assignmentType);
-                        return 0;
+                        return 1;
                     }
                     break;
 
@@ -349,7 +362,7 @@ namespace CBlunt.ANTLR
                     if (assignmentType != "number")
                     {
                         SyntaxError(context, "Cannot use subtraction assignment operator on a type " + assignmentType);
-                        return 0;
+                        return 1;
                     }
                     break;
 
@@ -357,7 +370,7 @@ namespace CBlunt.ANTLR
                     if (assignmentType != "number")
                     {
                         SyntaxError(context, "Cannot use multiplication assignment operator on a type " + assignmentType);
-                        return 0;
+                        return 1;
                     }
                     break;
 
@@ -365,7 +378,7 @@ namespace CBlunt.ANTLR
                     if (assignmentType != "number")
                     {
                         SyntaxError(context, "Cannot use division assignment operator on a type " + assignmentType);
-                        return 0;
+                        return 1;
                     }
                     break;
             }
@@ -374,7 +387,7 @@ namespace CBlunt.ANTLR
             if (variableProperties.Type != assignmentType)
             {
                 SyntaxError(context, "Variable " + variableName + " is of type " + variableProperties.Type + ", cannot assign it a value of type " + assignmentType);
-                return 0;
+                return 1;
             }
 
             variableProperties.Initialized = true;
@@ -409,7 +422,7 @@ namespace CBlunt.ANTLR
                 return 1;
             }
 
-            // Get the method's properties
+            // Get the method's properties. No need for null-check as this method does in fact exist
             var methodProperties = GetMethodProperties(methodName);
 
             // If there exists expressions, and the method does not actually take any parameters, stop and give syntax error
@@ -465,6 +478,7 @@ namespace CBlunt.ANTLR
 
                     var methodHere = GetMethodProperties(functionCallParameterType.functioncall().ID().GetText());
 
+                    /// TODO: CORRECT ERROR HERE
                     if (methodHere == null)
                         return 1;
 
@@ -561,6 +575,8 @@ namespace CBlunt.ANTLR
          */
         VariableProperties GetDeclaredVariable(string variableName)
         {
+            int a = 1 + 2 + 3;
+
             VariableProperties variableProperties = null;
 
             // Get the variable's properties from method scope
