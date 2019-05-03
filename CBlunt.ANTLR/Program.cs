@@ -15,6 +15,19 @@ namespace CBlunt.ANTLR
     class Program
     {
         private static FileSystemWatcher _watcher;
+        private static string FileText;
+        public static void Main()
+        {
+            InitializeFileSystemWatcher();
+            LoadFile("SampleCode.txt");
+
+            // Continually loop forever to keep the program (and watcher) alive
+            while (true)
+            {
+                // Reduce CPU usage marginally
+                Thread.Sleep(1);
+            }
+        }
 
         private static CBluntParser CreateParser(string input)
         {
@@ -33,50 +46,34 @@ namespace CBlunt.ANTLR
             return parser;
         }
 
-        private static void GenerateSymbolTable(string input)
+        private static void GenerateSymbolTable()
         {
-            var parser = CreateParser(input);
+            var parser = CreateParser(FileText);
 
             // Generate symbol table
-            new CBluntSymbolTableGenerator().Visit(parser.start());
+            new SymbolTableGenerator().Visit(parser.start());
         }
 
-        private static void CheckSemantics(string input)
+        private static void CheckSemantics()
         {
-            var parser = CreateParser(input);
+            var parser = CreateParser(FileText);
 
             // Check semantics
-            new CBluntSemanticChecker().Visit(parser.start());
+            new SemanticChecker().Visit(parser.start());
         }
 
-        private static void GenerateCode(string input)
+        private static void GenerateCode()
         {
-            var parser = CreateParser(input);
+            var parser = CreateParser(FileText);
 
             // Generate code
-            new CBluntCodeGenerator().Visit(parser.start());
-#if DEBUG
-            Console.WriteLine("Code generation test");
-#endif
+            new CodeGenerator().Visit(parser.start());
         }
 
         private static void DisplayError(Exception ex)
         {
             Console.WriteLine("Parser error:");
             Console.WriteLine(ex.Message);
-        }
-
-        public static void Main()
-        {
-            //InitializeFileSystemWatcher();
-            LoadFile("SampleCode2.txt");
-
-             // Continually loop forever to keep the program (and watcher) alive
-            while (true)
-            {
-                // Reduce CPU usage marginally
-                Thread.Sleep(1);
-            }
         }
 
         static void Watcher_Changed(object sender, FileSystemEventArgs e)
@@ -89,6 +86,9 @@ namespace CBlunt.ANTLR
             // Clear console for clean output
             Console.Clear();
 
+            // Clean the symbol table
+            SymbolTable.MethodDictionary.Clear();
+
             // Write out timestamp
             Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
 
@@ -96,7 +96,7 @@ namespace CBlunt.ANTLR
             try
             {
                 // Read text from the changed file
-                string fileText = File.ReadAllText(filePath);
+                FileText = File.ReadAllText(filePath);
 
                 // Begin compiler
                 //GenerateSymbolTable(fileText);

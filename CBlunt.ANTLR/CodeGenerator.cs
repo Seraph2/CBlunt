@@ -9,7 +9,7 @@ using System.IO;
 
 namespace CBlunt.ANTLR
 {
-    class CBluntCodeGenerator : CBluntBaseVisitor<int>
+    class CodeGenerator : CBluntBaseVisitor<int>
     {
         string filepath;
         string filecontent;
