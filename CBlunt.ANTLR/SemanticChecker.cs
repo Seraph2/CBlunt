@@ -575,8 +575,6 @@ namespace CBlunt.ANTLR
          */
         VariableProperties GetDeclaredVariable(string variableName)
         {
-            int a = 1 + 2 + 3;
-
             VariableProperties variableProperties = null;
 
             // Get the variable's properties from method scope
