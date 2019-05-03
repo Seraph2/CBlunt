@@ -138,6 +138,12 @@ namespace CBlunt.ANTLR
                 // Set the expected parameter type to the method's properties
                 var methodProperties = GetMethodProperties(methodName);
 
+                if (methodProperties == null)
+                {
+                    SyntaxError(context, "Attempt to get method " + methodName + " that does not exist");
+                    return 1;
+                }
+
                 foundParameterType = methodProperties.Type;
             }
 
@@ -272,7 +278,6 @@ namespace CBlunt.ANTLR
             // The properties of the variable we found
             VariableProperties variableProperties = null;
 
-
             variableProperties = GetDeclaredVariable(variableName);
 
             if (variableProperties == null)
@@ -405,7 +410,7 @@ namespace CBlunt.ANTLR
             }
 
             // Get the method's properties
-            var methodProperties = SymbolTable.MethodDictionary[methodName];
+            var methodProperties = GetMethodProperties(methodName);
 
             // If there exists expressions, and the method does not actually take any parameters, stop and give syntax error
             if (context.expression().Count() > 0 && methodProperties.ParameterTypes.Count == 0)
@@ -503,7 +508,7 @@ namespace CBlunt.ANTLR
          */
         void CreateVariable(int parentRuleIndex, string variableName, string variableType, string variableValue)
         {
-            // Finally, add the variable to the appropriate place
+            // Add the variable to the appropriate place
             if (parentRuleIndex == CBluntParser.RULE_start)
             {
                 // Add the new variable to the class level and create variable properties for it
@@ -519,7 +524,7 @@ namespace CBlunt.ANTLR
         /*
          * Get a method as a nice name
          */
-         string GetMethodNiceName(string methodName, List<string> methodParameters)
+        string GetMethodNiceName(string methodName, List<string> methodParameters)
         {
             // Add a parenthese
             methodName += "(";
@@ -621,20 +626,11 @@ namespace CBlunt.ANTLR
         }
 
         /*
-         * A helper method for checking if a method is declared in class scope
+         * A helper method for checking if a variable is declared at all
          */
         bool FindDeclaredVariable(string variableName)
         {
-            // Check method scope first
-            if (FindDeclaredVariableInMethodScope(variableName))
-                return true;
-
-            // Then check the class scope
-            if (FindDeclaredVariableInClassScope(variableName))
-                return true;
-
-            // If not found in both of them, variable could not be found
-            return false;
+            return FindDeclaredVariableInMethodScope(variableName) || FindDeclaredVariableInClassScope(variableName);
         }
 
         /*
