@@ -57,7 +57,7 @@ namespace CBlunt.ANTLR
             this.ConvertVariableType(context.variabletype().GetText());
 
             this.AddText(context.ID().GetText());
-            if (context.GetChild(2).GetText() == "=")
+            if (context.children.Count() > 2)
             {
                 this.AddText("=");
                 Visit(context.expression());
@@ -233,6 +233,16 @@ namespace CBlunt.ANTLR
                 this.AddText(")");
                 Visit(context.block());
             }
+            return 0;
+        }
+
+        public override int VisitSelective([NotNull] CBluntParser.SelectiveContext context)
+        {
+            this.AddText(context.GetChild(0).GetText());
+            this.AddText(context.GetChild(1).GetText());
+            Visit(context.condition());
+            this.AddText(context.GetChild(3).GetText());
+            Visit(context.block());
             return 0;
         }
 
