@@ -218,11 +218,20 @@ namespace CBlunt.ANTLR
             {
                 this.AddText("while (");
                 Visit(context.condition());
-                this.AddText(") {");
+                this.AddText(")");
+                Visit(context.block());
             } 
             else if (context.GetChild(0).GetText() == "for")
             {
-
+                this.AddText("for (");
+                for (int counter = 2; counter < 8; ++counter) {
+                    Visit(context.GetChild(counter));
+                    if (context.GetChild(counter).GetText() == ";")
+                    {
+                        this.AddSemicolon(false);
+                    }
+                }
+                this.AddText(")");
             }
             return 0;
         }
