@@ -34,9 +34,16 @@ namespace CBlunt.ANTLR
                     this.AddSemicolon();
                 }
             }
-            this.filecontent += "} }";
+            this.AddText("\n}");
+            this.AddText("\n}");
+            
             //TODO: Rewrite to loop through the list for each entry instead.
             this.filecontent = this.imports.ToString() + this.filecontent;
+            string collectedimports = "";
+            for (int counter = 0; counter < this.imports.Count(); ++counter)
+            {
+                collectedimports += this.imports.
+            }
 
             //After translation is done, the contents are saved to a file
             using (StreamWriter stream = File.CreateText(this.filepath))
@@ -97,8 +104,6 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
-        //Update after merging Jakob's branch with the updated functioncall rules.
-        //Fix multicommas reee
         public override int VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context)
         {
 #if DEBUG
