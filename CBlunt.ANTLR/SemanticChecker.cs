@@ -105,6 +105,7 @@ namespace CBlunt.ANTLR
             }
 
             // If no expression is found, simply create the variable and return as the variable cannot be type-checked against
+            // Example: text a;
             if (context.expression() == null)
             {
                 CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
@@ -164,7 +165,7 @@ namespace CBlunt.ANTLR
                 foundParameterType = methodProperties.Type;
             }
 
-            // Check the variable's type with the found type
+            // Check the variable's type against the found type
             if (variableType != foundParameterType)
             {
                 SyntaxError(context, "Expected " + variableType + ", got " + foundParameterType);
