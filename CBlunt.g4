@@ -95,7 +95,7 @@ parameter
 	;
 
 functionreturn // return "test"
-	: 'return' expression
+	: 'return' expression?
 	;
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
