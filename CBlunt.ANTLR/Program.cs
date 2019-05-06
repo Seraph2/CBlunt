@@ -124,9 +124,9 @@ namespace CBlunt.ANTLR
                 FileText = File.ReadAllText(filePath);
 
                 // Begin compiler
-                GenerateSymbolTable();
-                CheckSemantics();
-                //GenerateCode();
+                //GenerateSymbolTable(fileText);
+                //CheckSemantics(fileText);
+                GenerateCode();
             }
             catch (Exception exception)
             {
