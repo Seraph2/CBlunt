@@ -56,7 +56,7 @@ condition
 	;
 
 logic
-	: expression relational expression
+	: expression relational expression // 1 + 2 >= 12 + 87 + 12
 	;
 
 relational
@@ -94,7 +94,7 @@ parameter
 	| functioncall
 	;
 
-functionreturn
+functionreturn // return "test"
 	: 'return' expression
 	;
 
