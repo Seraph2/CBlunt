@@ -15,14 +15,14 @@ namespace CBlunt.ANTLR
     class Program
     {
         private static FileSystemWatcher _watcher;
-        private static string FileText;
-        private static string ScriptDirectory = "scripts";
+        private static string _fileText;
+        private static readonly string _scriptDirectory = "scripts";
 
         public static void Main()
         {
-            LoadScripts(ScriptDirectory);
+            LoadScripts(_scriptDirectory);
 
-            InitializeFileSystemWatcher(ScriptDirectory);
+            InitializeFileSystemWatcher(_scriptDirectory);
 
             // Continually loop forever to keep the program (and watcher) alive
             while (true)
@@ -51,7 +51,7 @@ namespace CBlunt.ANTLR
 
         private static void GenerateSymbolTable()
         {
-            var parser = CreateParser(FileText);
+            var parser = CreateParser(_fileText);
 
             // Generate symbol table
             new SymbolTableGenerator().Visit(parser.start());
@@ -59,7 +59,7 @@ namespace CBlunt.ANTLR
 
         private static void CheckSemantics()
         {
-            var parser = CreateParser(FileText);
+            var parser = CreateParser(_fileText);
 
             // Check semantics
             new SemanticChecker().Visit(parser.start());
@@ -67,7 +67,7 @@ namespace CBlunt.ANTLR
 
         private static void GenerateCode()
         {
-            var parser = CreateParser(FileText);
+            var parser = CreateParser(_fileText);
 
             // Generate code
             new CodeGenerator().Visit(parser.start());
@@ -121,12 +121,12 @@ namespace CBlunt.ANTLR
             try
             {
                 // Read text from the file
-                FileText = File.ReadAllText(filePath);
+                _fileText = File.ReadAllText(filePath);
 
                 // Begin compiler
-                //GenerateSymbolTable(fileText);
-                //CheckSemantics(fileText);
-                GenerateCode();
+                GenerateSymbolTable();
+                CheckSemantics();
+                //GenerateCode();
             }
             catch (Exception exception)
             {
@@ -136,7 +136,7 @@ namespace CBlunt.ANTLR
 
         private static void InitializeFileSystemWatcher(string scriptDirectory)
         {
-             // Initialize watcher in current directory
+             // Initialize watcher in the script directory
             _watcher = new FileSystemWatcher("./" + scriptDirectory);
             
              // Add the method to execute when a file is changed

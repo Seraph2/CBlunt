@@ -10,8 +10,8 @@ namespace CBlunt.ANTLR
 {
     class SemanticChecker : CBluntBaseVisitor<int>
     {
-        private Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
-        private LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
+        private readonly Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
+        private readonly LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
 
         void SyntaxError(object context, string err)
         {
@@ -46,7 +46,6 @@ namespace CBlunt.ANTLR
             // After visiting the whole program, perform after-processing checks
 
             // Determine whether the entry point exists
-
             var mainMethodProperties = GetMethodProperties("Main");
 
             if (mainMethodProperties == null)
@@ -228,7 +227,7 @@ namespace CBlunt.ANTLR
             // Visit the block of the function
             Visit(context.block());
 
-            // Remove the scope
+            // After the function has finished, remove the scope
             _methodScopeLinkedList.RemoveLast();
 
             return 0;
