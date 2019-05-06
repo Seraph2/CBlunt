@@ -2,62 +2,62 @@ grammar CBlunt;
 
 @parser::header {#pragma warning disable 3021}
 @lexer::header {#pragma warning disable 3021}
-	
+
 start
-    : (function | declaration ';')+ // this will only be used if "int Main" HAS to be the first function declared. note that of course it is possible to declare and assign after main has been declared
+    : (function | declaration ';')+ // Global scope
     ;
-	
-block : '{' (statement)* '}' ;
+
+block : '{' (statement)* '}' ; // { ... }
 
 function
-	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block
+	: functiontype ID '(' ((variabletype ID ',')* variabletype ID)? ')' block // void F(number a) { ... }
 	;
 
 statement
-	: (((declaration | functioncall | variableedit | functionreturn ) ';') | iterative | selective)
+	: (((declaration | functioncall | variableedit | functionreturn) ';') | iterative | selective)
 	;
-	
+
 functioncall
-	: ID '(' ((parameter ',')* parameter)? ')'
+	: ID '(' ((expression ',')* expression)? ')' // F(123,"test",false, 12 + 34);
 	;
-	
+
 iterative
-	: 'while' '(' condition ')' block
-	| 'for' '(' (declaration | variableedit) ';' condition ';' variableedit ')' block //expression might need to be replaced
+	: 'while' '(' condition ')' block // while (2 > 1) { ... }
+	| 'for' '(' (declaration | variableedit) ';' condition ';' variableedit ')' block // Init, condition, post-block
 	;
-	
-selective   
-	: 'if' '(' condition ')' block elsestmt?
+
+selective
+	: 'if' '(' condition ')' block elsestmt? // Else is not required but can be used
 	;
 
 elsestmt
-	: 'else' (block | selective)
+	: 'else' (block | selective) // Leads to a block or another if (that is technically another block)
 	;
 
 declaration
-    : variabletype ID ('=' expression)?
+    : variabletype ID ('=' expression)? // text a = "hello";
     ;
 
-variableedit      
-	: ID equals expression
+variableedit
+	: ID equals expression // a = "edited";
 	;
-	
+
 expression
-	: parameter calculation*
-	| parameter
+	: parameter calculation* // 1 + 2 + 3 + (5 + 2)
 	;
-	
+
 calculation
-	: operator parameter | operator '(' parameter | operator parameter ')' ;
-	
+	: operator (parameter | '(' expression ')') // 5 + 2 + 5 + 7 + (1231231 - 5)
+	;
+
 condition
-	: '!'? ( logic | ID ) (conditional condition)*
+	: (logic | truth | ID) (conditional condition)* // if (5 > 2), if (true), if(b)
+	| '!' ('(' logic ')' | truth | ID) (conditional condition)* // if(!(5 > 2)), if(!false), if(!b)
 	;
-	
+
 logic
-	: ( expression relational expression )
+	: expression relational expression
 	;
-	
 
 relational
 	: '=='
@@ -69,8 +69,8 @@ relational
 	;
 
 conditional
-	: '||' 
-	| '&&' 
+	: '||'
+	| '&&'
 	| 'or'
 	| 'and'
 	;
@@ -80,7 +80,7 @@ variabletype
     | 'text'
 	| 'bool'
     ;
-	
+
 functiontype
 	: variabletype
 	| 'void'
@@ -93,7 +93,7 @@ parameter
 	| ID
 	| functioncall
 	;
-	
+
 functionreturn
 	: 'return' expression
 	;
@@ -116,14 +116,14 @@ equals
 	;
 
 LINECOMMENT
-	: '//' ~[\r\n]* -> skip 
+	: '//' ~[\r\n]* -> skip
 	;
 
 COMMENT
 	: '/*' .*? '*/' -> skip
 	;
 
-WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, and newlines
 
 operator
     : '+'

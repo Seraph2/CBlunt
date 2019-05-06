@@ -15,17 +15,29 @@ namespace CBlunt.ANTLR
     class Program
     {
         private static FileSystemWatcher _watcher;
+        private static string FileText;
+        private static string ScriptDirectory = "scripts";
 
-        private static string GetInput()
+        public static void Main()
         {
-            Console.Write("Enter a value to evaluate: ");
-            return Console.ReadLine();
+            LoadScripts(ScriptDirectory);
+
+            InitializeFileSystemWatcher(ScriptDirectory);
+
+            // Continually loop forever to keep the program (and watcher) alive
+            while (true)
+            {
+                // Reduce CPU usage marginally
+                Thread.Sleep(1);
+            }
         }
 
-        private static void EvaluateInput(string input)
+        private static CBluntParser CreateParser(string input)
         {
+            // Create Lexer
             CBluntLexer lexer = new CBluntLexer(new AntlrInputStream(input));
 
+            // Remove default error listener, add our own
             lexer.RemoveErrorListeners();
             lexer.AddErrorListener(new ThrowingErrorListener<int>());
 
@@ -34,35 +46,42 @@ namespace CBlunt.ANTLR
             parser.RemoveErrorListeners();
             parser.AddErrorListener(new ThrowingErrorListener<IToken>());
 
+            return parser;
+        }
+
+        private static void GenerateSymbolTable()
+        {
+            var parser = CreateParser(FileText);
+
+            // Generate symbol table
+            new SymbolTableGenerator().Visit(parser.start());
+        }
+
+        private static void CheckSemantics()
+        {
+            var parser = CreateParser(FileText);
+
             // Check semantics
-            new CBluntSemanticChecker().Visit(parser.start());
+            new SemanticChecker().Visit(parser.start());
+        }
+
+        private static void GenerateCode()
+        {
+            var parser = CreateParser(FileText);
 
             // Generate code
-            //new CBluntCodeGenerator().Visit(parser.start());
+            new CodeGenerator().Visit(parser.start());
         }
 
-        private static void DisplayResult(int result)
+        private static void DisplayError(string filePath, Exception ex)
         {
-            Console.WriteLine($"Result: {result}");
-        }
+            // Write out the filename only
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            Console.WriteLine("File: " + fileName);
 
-        private static void DisplayError(Exception ex)
-        {
+            // Show the error
             Console.WriteLine("Parser error:");
             Console.WriteLine(ex.Message);
-        }
-
-        public static void Main()
-        {
-            InitializeFileSystemWatcher();
-            LoadFile("SampleCode.txt");
-
-             // Continually loop forever as the program should not stop
-            while (true)
-            {
-                // Reduce CPU usage marginally
-                Thread.Sleep(1);
-            }
         }
 
         static void Watcher_Changed(object sender, FileSystemEventArgs e)
@@ -70,33 +89,55 @@ namespace CBlunt.ANTLR
             LoadFile(e.FullPath);
         }
 
+        private static void LoadScripts(string scriptDirectory)
+        {
+            // Create the script directory if it does not exist
+            if (!Directory.Exists(scriptDirectory))
+                Directory.CreateDirectory(scriptDirectory);
+
+            foreach (var file in Directory.GetFiles(scriptDirectory))
+            {
+                // Load the file, CBlunt is checked against in LoadFile
+                LoadFile(file);
+            }
+        }
+
         private static void LoadFile(string filePath)
         {
+            // Skip files that are not CBlunt
+            if (Path.GetExtension(filePath) != ".cb")
+                return;
+
             // Clear console for clean output
             Console.Clear();
 
-            // Write out timestamp
+            // Clean the symbol table
+            SymbolTable.MethodDictionary.Clear();
+
+            // Write out timestamp to simplify seeing filechanges
             Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff"));
 
             // Try-catch is used because an exception can be thrown
             try
             {
-                // Read text from the changed file
-                string fileText = File.ReadAllText(filePath);
+                // Read text from the file
+                FileText = File.ReadAllText(filePath);
 
-                // Give result if success, display error when failed to parse
-                EvaluateInput(fileText);
+                // Begin compiler
+                GenerateSymbolTable();
+                CheckSemantics();
+                //GenerateCode();
             }
             catch (Exception exception)
             {
-                DisplayError(exception);
+                DisplayError(filePath, exception);
             }
         }
 
-        private static void InitializeFileSystemWatcher()
+        private static void InitializeFileSystemWatcher(string scriptDirectory)
         {
              // Initialize watcher in current directory
-            _watcher = new FileSystemWatcher(".");
+            _watcher = new FileSystemWatcher("./" + scriptDirectory);
             
              // Add the method to execute when a file is changed
             _watcher.Changed += new FileSystemEventHandler(Watcher_Changed);
