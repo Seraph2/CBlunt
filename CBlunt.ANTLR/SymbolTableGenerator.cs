@@ -95,13 +95,14 @@ namespace CBlunt.ANTLR
 
         void CreateMethod(string methodName, MethodProperties methodProperties)
         {
+            // Determine if the method already exists
             if (SymbolTable.MethodDictionary.ContainsKey(methodName))
             {
                 Console.WriteLine("Symbol table generation error! Script contains declaration for API method with name: " + methodName);
                 return;
             }
 
-            // No need for check, program will error if method already exists
+            // Add the method to the symbol table
             SymbolTable.MethodDictionary.Add(methodName, methodProperties);
         }
     }
