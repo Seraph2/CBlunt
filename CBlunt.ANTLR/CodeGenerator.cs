@@ -97,12 +97,6 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
-        public override int VisitVariabletype([NotNull] CBluntParser.VariabletypeContext context)
-        {
-            this.ConvertVariableType(context.GetChild(0).GetText());
-            return 0;
-        }
-
         //Update after merging Jakob's branch with the updated functioncall rules.
         //Fix multicommas reee
         public override int VisitFunctioncall([NotNull] CBluntParser.FunctioncallContext context)
@@ -246,7 +240,10 @@ namespace CBlunt.ANTLR
             this.AddText(context.GetChild(1).GetText());
             Visit(context.condition());
             this.AddText(context.GetChild(3).GetText());
-            Visit(context.block());
+            for (int counter = 4; counter < context.children.Count(); ++counter)
+            {
+                Visit(context.GetChild(counter));
+            }
             return 0;
         }
 
@@ -338,6 +335,35 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
+        public override int VisitVariabletype([NotNull] CBluntParser.VariabletypeContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitVariabletype");
+#endif
+            this.ConvertVariableType(context.GetChild(0).GetText());
+            return 0;
+        }
+
+        public override int VisitElsestmt([NotNull] CBluntParser.ElsestmtContext context)
+        {
+#if DEBUG 
+            Console.WriteLine("VisitElsestmt");
+#endif
+            this.AddText(context.GetChild(0).GetText());
+            Visit(context.GetChild(1));
+            return 0;
+        }
+
+        public override int VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunctionreturn");
+#endif
+            this.AddText(context.GetChild(0).GetText());
+            Visit(context.expression());
+            return 0;
+        }
+
         public CodeGenerator() {
             string temppath = "Test";
             int count;
@@ -351,18 +377,13 @@ namespace CBlunt.ANTLR
 
         private void ConvertFunctionType(string functiontype)
         {
-            if (functiontype == "number")
-            {
-                this.filecontent += "double ";
-            } else if (functiontype == "text ")
-            {
-                this.filecontent += "string";
-            } else if (functiontype == "bool ")
-            {
-                this.filecontent += "Boolean";
-            } else if (functiontype == "void")
+            if (functiontype == "void")
             {
                 this.filecontent += "void ";
+            } 
+            else
+            {
+                this.ConvertVariableType(functiontype);
             }
         }
 
