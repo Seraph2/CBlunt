@@ -380,7 +380,7 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitFunctionreturn");
 #endif
             this.AddText(context.GetChild(0).GetText());
-            Visit(context.expression());
+            if(context.children.Count() > 1) Visit(context.expression());
             return 0;
         }
 
