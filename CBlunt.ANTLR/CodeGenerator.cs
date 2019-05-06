@@ -80,11 +80,12 @@ namespace CBlunt.ANTLR
             if (context.ID(0).GetText() == "Main")
             {
                 this.filecontent += "static void Main()\n";
-            } else
+            }
+            else
             {
                 this.ConvertFunctionType(context.functiontype().GetText());
                 this.AddText(context.ID(0).GetText() + "(");
-                
+
                 for (int counter = 0; counter < context.variabletype().Count(); ++counter)
                 {
                     Visit(context.variabletype(counter));
@@ -96,7 +97,7 @@ namespace CBlunt.ANTLR
 
                 this.AddText(")");
 
-                
+
             }
             Visit(context.block());
 
@@ -108,16 +109,31 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitFunctioncall");
 #endif
-            this.filecontent += context.ID().GetText() + " (";
-            for (int count = 1; count < context.ChildCount; ++count)
+            if (context.GetChild(0).GetText() == "WriteLine")
             {
-                Visit(context.GetChild(count));
-                if (context.GetChild(count).GetText() == ",")
-                {
-                    this.filecontent += ", ";
-                }
+                this.AddText("Console.WriteLine (");
+                Visit(context.expression(0));
+                this.AddText(")");
             }
-            this.filecontent += ")";
+            else if (context.GetChild(0).GetText() == "ReadLine")
+            {
+                this.AddText("Console.ReadLine (");
+                Visit(context.expression(0));
+                this.AddText(")");
+            }
+            else
+            {
+                this.filecontent += context.ID().GetText() + " (";
+                for (int count = 1; count < context.ChildCount; ++count)
+                {
+                    Visit(context.GetChild(count));
+                    if (context.GetChild(count).GetText() == ",")
+                    {
+                        this.filecontent += ", ";
+                    }
+                }
+                this.filecontent += ")";
+            }
             return 0;
         }
 
