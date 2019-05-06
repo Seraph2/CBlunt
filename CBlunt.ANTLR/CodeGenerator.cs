@@ -37,13 +37,12 @@ namespace CBlunt.ANTLR
             this.AddText("\n}");
             this.AddText("\n}");
             
-            //TODO: Rewrite to loop through the list for each entry instead.
-            this.filecontent = this.imports.ToString() + this.filecontent;
             string collectedimports = "";
             for (int counter = 0; counter < this.imports.Count(); ++counter)
             {
-                collectedimports += this.imports.
+                collectedimports += this.imports[counter] + "\n";
             }
+            this.filecontent = collectedimports + this.filecontent;
 
             //After translation is done, the contents are saved to a file
             using (StreamWriter stream = File.CreateText(this.filepath))
