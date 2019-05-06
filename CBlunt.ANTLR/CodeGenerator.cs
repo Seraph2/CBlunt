@@ -326,8 +326,15 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitFunctiontype");
 #endif
-            Visit(context.GetChild(0));
-            if(context.GetText() == "void")
+            
+            if (context.GetText() == "void")
+            {
+                this.ConvertFunctionType(context.GetText());
+            } 
+            else
+            {
+                Visit(context.GetChild(0));
+            }
             return 0;
         }
 
