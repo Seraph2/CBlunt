@@ -12,6 +12,7 @@ namespace CBlunt.ANTLR
     {
         private readonly Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
         private readonly LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
+        private string _currentMethodName = "";
 
         void SyntaxError(object context, string err)
         {
@@ -225,11 +226,59 @@ namespace CBlunt.ANTLR
                 _methodScopeLinkedList.Last.Value.Add(parameterName, variableProperties);
             }
 
-            // Visit the block of the function
+            // Detect if there exists a return in a method that is not of type void. Void can return too but it's not mandatory
+            var blockStatement = context.block().statement();
+
+            // In the initial scope of the method, check whether there exists at least one return. Error if there exists multiple
+            int returnCount = 0;
+
+            for (int i = 0; i < blockStatement.Count(); ++i)
+            {
+                // Skip non-function returns
+                if (context.block().statement(i).functionreturn() == null)
+                    continue;
+
+                // Cannot break here as there MAY exist multiple returns
+                ++returnCount;
+
+                // Check for void: it cannot return anything
+                if (context.block().statement(i).functionreturn().expression() != null && methodType == "void")
+                {
+                    SyntaxError(context, "Void methods cannot return values");
+                    return 1;
+                }
+
+                // Check for non-void: it MUST return something
+                if (context.block().statement(i).functionreturn().expression() == null && methodType != "void")
+                {
+                    SyntaxError(context, "Method " + methodName + " with type " + methodType + " must return a value");
+                    return 1;
+                }
+
+                // If there exists multiple returns, there is a problem. This accounts for both void and other types
+                if (returnCount > 1)
+                {
+                    SyntaxError(context, "Method " + methodName + " with type " + methodType + " cannot return multiple times in its method scope");
+                    return 1;
+                }
+            }
+
+            // If there exists no return and it is NOT a method of type void, output an error
+            if (returnCount == 0 && methodType != "void")
+            {
+                SyntaxError(context, "Method " + methodName + " with type " + methodType + " does not return a type " + methodType);
+                return 1;
+            }
+
+            _currentMethodName = methodName;
+
+            // Visit the block of the method
             Visit(context.block());
 
             // After the function has finished, remove the scope
             _methodScopeLinkedList.RemoveLast();
+
+            _currentMethodName = "";
 
             return 0;
         }
@@ -255,15 +304,7 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitExpression");
 #endif
 
-            /// TODO: HANDLE RECURSION HERE
 
-            //Console.WriteLine(1);
-
-            if (context.parameter() != null)
-                Visit(context.parameter());
-
-            /*if (context.calculation() != null)
-                Visit(context.calculation(0));*/
 
             return 0;
         }
@@ -551,6 +592,14 @@ namespace CBlunt.ANTLR
             }
 
             return base.VisitFunctioncall(context);
+        }
+
+        public override int VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context)
+        {
+            /// TODO: Evaluate here whatever is attempted to return is correct according to the method's type
+            Console.WriteLine(_currentMethodName);
+
+            return base.VisitFunctionreturn(context);
         }
 
         /*
