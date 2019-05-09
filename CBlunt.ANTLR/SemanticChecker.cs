@@ -13,7 +13,7 @@ namespace CBlunt.ANTLR
         private readonly Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
         private readonly LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
         private string _currentMethodName = "";
-        private ExpressionStore _expressionStore = new ExpressionStore();
+        private readonly ExpressionStore _expressionStore = new ExpressionStore();
 
         void SyntaxError(object context, string err)
         {
@@ -164,6 +164,8 @@ namespace CBlunt.ANTLR
                 return 1;
             }
 
+            Console.WriteLine(_expressionStore.Type);
+
             CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
 
             return base.VisitDeclaration(context);
@@ -280,40 +282,133 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitExpression");
 #endif
 
-            _expressionStore.ExpressionTypes.AddLast("test");
+            var parameter = context.parameter();
+            var assignmentType = GetParameterType(context, parameter);
+
+            if (!AddToExpressionStore(assignmentType))
+                return 1;
 
             var calculationCount = context.calculation().Count();
 
-            // No calculation, grab parameter and set correct return-type
-            if (calculationCount == 0)
-            {
-                var parameter = context.parameter();
-                var assignmentType = GetParameterType(context, parameter);
-
-                Console.WriteLine("calc count = 0: " + assignmentType);
-
-                return 0;
-            }
-
-            Console.WriteLine("Calc count: " + calculationCount);
-            Console.WriteLine(context.parameter().GetText());
-
             for (int i = 0; i < calculationCount; ++i)
             {
-                if (context.calculation(i).parameter() != null)
-                {
-                    Console.WriteLine(GetParameterType(context, context.calculation(i).parameter()));
-
-                    Console.WriteLine(context.calculation(i).parameter().GetText());
-                }
-
-                if (context.calculation(i).expression() != null)
-                {
-                    Visit(context.calculation(i).expression());
-                }
+                if (Visit(context.calculation(i)) == 1)
+                    return 1;
             }
 
             return 0;
+        }
+
+        public override int VisitCalculation([NotNull] CBluntParser.CalculationContext context)
+        {
+            var operatorContext = context.@operator().GetText();
+
+            // If a parameter was found, add it to the store
+            if (context.parameter() != null)
+            {
+                var parameter = context.parameter();
+                var parameterType = GetParameterType(context, parameter);
+
+                var prevExpressionStoreType = _expressionStore.ExpressionTypes.Last;
+
+                if (prevExpressionStoreType == null)
+                {
+                    if (!AddToExpressionStore(parameterType))
+                        return 1;
+
+                    return 0;
+                }
+
+                var prevExpressionStoreValue = prevExpressionStoreType.Value;
+
+                // Perform semantics on operator, it is not possible to subtract ex. a string from a number
+                // If the type is already text, the numbers cannot turn the expression store into a number again. It will remain text
+                switch (operatorContext)
+                {
+                    case "+":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Type == "text")
+                                break;
+
+                            _expressionStore.Type = "number";
+                            break;
+                        }
+
+                        if (prevExpressionStoreValue == "text" && parameterType == "text")
+                        {
+                            _expressionStore.Type = "text";
+                            break;
+                        }
+                            
+
+                        if (prevExpressionStoreValue == "number" && parameterType == "text")
+                        {
+                            _expressionStore.Type = "text";
+                            break;
+                        }
+
+                        if (prevExpressionStoreValue == "text" && parameterType == "number")
+                        {
+                            _expressionStore.Type = "text";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot add a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+
+                    case "-":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Type == "text")
+                                break;
+
+                            _expressionStore.Type = "number";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot subtract a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+
+                    case "*":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Type == "text")
+                                break;
+
+                            _expressionStore.Type = "number";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot multiply a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+
+                    case "/":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Type == "text")
+                                break;
+
+                            _expressionStore.Type = "number";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot divide a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+                }
+
+                if (!AddToExpressionStore(parameterType))
+                    return 1;
+            }
+
+            // If there is an expression instead, visit it
+            if (context.expression() != null)
+            {
+                if (Visit(context.expression()) == 1)
+                    return 1;
+            }
+            
+            return base.VisitCalculation(context);
         }
 
         public override int VisitParameter([NotNull]CBluntParser.ParameterContext context)
@@ -729,29 +824,25 @@ namespace CBlunt.ANTLR
             if (parameterType == "")
                 return false;
 
-            if (_expressionStore.ExpressionTypes.Count > 0)
+            // Skip void completely, it cannot be used in an expression
+            if (parameterType == "void")
+                return false;
+
+            // Variable for previous expression
+            string prevExpressionStoreType = null;
+
+            // If there exists a previous node, get its type
+            if (_expressionStore.ExpressionTypes.Last != null)
+                prevExpressionStoreType = _expressionStore.ExpressionTypes.Last.Value;
+
+            // If there exists no previous expression, simply store the parameter type
+            if (prevExpressionStoreType == null)
             {
-                var prevExpressionStoreString = _expressionStore.ExpressionTypes.Last.Previous.Value;
-
-                switch (prevExpressionStoreString)
-                {
-                    case "text":
-                        Console.WriteLine("text");
-                        break;
-
-                    case "number":
-                        Console.WriteLine("number");
-                        break;
-
-                    case "bool":
-                        Console.WriteLine("bool");
-                        break;
-
-                    case "void":
-                        return false;
-                }
-
+                _expressionStore.ExpressionTypes.AddLast(parameterType);
+                return true;
             }
+
+            _expressionStore.ExpressionTypes.AddLast(parameterType);
 
             return true;
         }
