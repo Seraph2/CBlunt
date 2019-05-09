@@ -104,58 +104,15 @@ namespace CBlunt.ANTLR
                 return 0;
             }
 
-            // Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
-            var contextExpressionParameter = context.expression().parameter();
+            _expressionStore.ExpressionTypes.Clear();
 
-            /// TODO: It may be necessary to determine a better way to do this, potentially utilizing visitor more correctly as this MAY complicate things later
-            string foundParameterType = "";
+            // Visit the expression
+            Visit(context.expression());
 
-            // Get the name of the expected parameter for potential error output further below
-            if (contextExpressionParameter.STRING() != null)
-                foundParameterType = "text";
+            // Set the found parameter type
+            var foundParameterType = _expressionStore.Type;
 
-            if (contextExpressionParameter.NUMBER() != null)
-                foundParameterType = "number";
-
-            if (contextExpressionParameter.truth() != null)
-                foundParameterType = "bool";
-
-            if (contextExpressionParameter.ID() != null)
-            {
-                var variablePropeties = GetDeclaredVariable(contextExpressionParameter.ID().GetText());
-
-                if (variablePropeties == null)
-                    return 1;
-
-                if (!variablePropeties.Initialized)
-                {
-                    SyntaxError(context, "Cannot assign the value of variable " + contextExpressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet.");
-                    return 1;
-                }
-
-                foundParameterType = variablePropeties.Type;
-            }
-
-            if (contextExpressionParameter.functioncall() != null)
-            {
-                // The name of the method
-                var methodName = contextExpressionParameter.functioncall().ID().GetText();
-
-                // If the visitor returns 1, there was a problem. Stop declaration check.
-                if (Visit(contextExpressionParameter.functioncall()) == 1)
-                    return 1;
-
-                // Set the expected parameter type to the method's properties
-                var methodProperties = GetMethodProperties(methodName);
-
-                if (methodProperties == null)
-                {
-                    SyntaxError(context, "Attempt to get method " + methodName + " that does not exist");
-                    return 1;
-                }
-
-                foundParameterType = methodProperties.Type;
-            }
+            _expressionStore.ExpressionTypes.Clear();
 
             // Check the variable's type against the found type
             if (variableType != foundParameterType)
@@ -163,8 +120,6 @@ namespace CBlunt.ANTLR
                 SyntaxError(context, "Expected " + variableType + ", got " + foundParameterType);
                 return 1;
             }
-
-            Console.WriteLine(_expressionStore.Type);
 
             CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
 
@@ -281,6 +236,15 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitExpression");
 #endif
+
+            if (context.Parent.RuleIndex == CBluntParser.RULE_functioncall)
+            {
+                _expressionStore.IsFunctionCall = true;
+            }
+            else
+            {
+                _expressionStore.IsFunctionCall = false;
+            }
 
             var parameter = context.parameter();
             var assignmentType = GetParameterType(context, parameter);
@@ -902,6 +866,8 @@ namespace CBlunt.ANTLR
 
                 assignmentType = methodProperties.Type;
             }
+
+            
 
             return assignmentType;
         }
