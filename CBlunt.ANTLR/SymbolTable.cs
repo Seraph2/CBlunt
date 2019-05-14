@@ -36,8 +36,6 @@ namespace CBlunt.ANTLR
         // The current type of the expression
         public string Type { get; set; }
 
-        public bool IsFunctionCall { get; set; }
-
         // The list of parameter types for the expression
         public LinkedList<string> ExpressionTypes = new LinkedList<string>();
     }
