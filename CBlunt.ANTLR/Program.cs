@@ -18,8 +18,9 @@ namespace CBlunt.ANTLR
         private static string FileText;
         private static string ScriptDirectory = "scripts";
 
-        public static void Main()
+        public static void Main(string[] arg)
         {
+            if (arg.Length == 1) { ScriptDirectory = arg.First(); }
             LoadScripts(ScriptDirectory);
 
             InitializeFileSystemWatcher(ScriptDirectory);
@@ -123,9 +124,9 @@ namespace CBlunt.ANTLR
                 // Read text from the file
                 FileText = File.ReadAllText(filePath);
 
-                // Begin compiler
-                //GenerateSymbolTable(fileText);
-                //CheckSemantics(fileText);
+                //Begin compiler;
+                GenerateSymbolTable();
+                CheckSemantics();
                 GenerateCode();
             }
             catch (Exception exception)

@@ -1,0 +1,1 @@
+dotnet CBlunt.ANTLR\bin\Release\netcoreapp2.1\CBlunt.ANTLR.dll cbcode
