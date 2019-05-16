@@ -17,10 +17,16 @@ namespace CBlunt.ANTLR
         private static FileSystemWatcher _watcher;
         private static string FileText;
         private static string ScriptDirectory = "scripts";
+        private static string OutputDirectory = "";
 
-        public static void Main(string[] arg)
+        public static void Main(string[] args)
         {
-            if (arg.Length == 1) { ScriptDirectory = arg.First(); }
+            if (args.Length > 0)
+            {
+                ScriptDirectory = args[0];
+                OutputDirectory = args[1];
+            }
+
             LoadScripts(ScriptDirectory);
 
             InitializeFileSystemWatcher(ScriptDirectory);
@@ -71,7 +77,7 @@ namespace CBlunt.ANTLR
             var parser = CreateParser(FileText);
 
             // Generate code
-            new CodeGenerator().Visit(parser.start());
+            new CodeGenerator(OutputDirectory).Visit(parser.start());
         }
 
         private static void DisplayError(string filePath, Exception ex)

@@ -384,11 +384,14 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
-        public CodeGenerator() {
-            string temppath = "Test";
+        public CodeGenerator(string outputpath = "") {
+            string initialpath;
+            if (outputpath == "") { initialpath = "Test"; }
+            else { initialpath = outputpath + "\\Test"; }
+            string temppath = initialpath;
             int count;
             for(count = 0; File.Exists(temppath); ++count){
-                temppath = "Test" + count;
+                temppath = initialpath + count;
             }
             this.filepath = temppath;
             this.filecontent = "";
