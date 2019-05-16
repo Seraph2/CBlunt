@@ -384,17 +384,14 @@ namespace CBlunt.ANTLR
             return 0;
         }
 
-        public CodeGenerator(string outputpath = "") {
-            string initialpath;
-            if (outputpath == "") { initialpath = "Test"; }
-            else { initialpath = outputpath + "\\Test"; }
-            string temppath = initialpath;
-            int count;
-            for(count = 0; File.Exists(temppath); ++count){
-                temppath = initialpath + count;
-            }
-            this.filepath = temppath;
-            this.filecontent = "";
+        public CodeGenerator(string fileName, string outputpath = "") {
+            string name = Path.GetFileNameWithoutExtension(fileName);
+            if (outputpath == "") { filepath = name; }
+            else { filepath = outputpath + "\\" + name; }
+            //Normally one would think Path.ChangeExtension() would be an appropriate method.
+            //But I have found it does absolutely nothing. So uh, yeah, don't bother with it.
+            filepath += ".cs";
+            filecontent = "";
             imports = new List<string>();
         }
 

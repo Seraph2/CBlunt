@@ -21,6 +21,7 @@ namespace CBlunt.ANTLR
 
         public static void Main(string[] args)
         {
+            //Mostly used to check whether the program is compiled directly or run from a batch.
             if (args.Length > 0)
             {
                 ScriptDirectory = args[0];
@@ -72,12 +73,12 @@ namespace CBlunt.ANTLR
             new SemanticChecker().Visit(parser.start());
         }
 
-        private static void GenerateCode()
+        private static void GenerateCode(string filePath)
         {
             var parser = CreateParser(FileText);
 
             // Generate code
-            new CodeGenerator(OutputDirectory).Visit(parser.start());
+            new CodeGenerator(filePath, OutputDirectory).Visit(parser.start());
         }
 
         private static void DisplayError(string filePath, Exception ex)
@@ -133,7 +134,7 @@ namespace CBlunt.ANTLR
                 //Begin compiler;
                 GenerateSymbolTable();
                 CheckSemantics();
-                GenerateCode();
+                GenerateCode(filePath);
             }
             catch (Exception exception)
             {
