@@ -31,13 +31,14 @@ namespace CBlunt.ANTLR
             LoadScripts(ScriptDirectory);
 
             InitializeFileSystemWatcher(ScriptDirectory);
-
+#if DEBUG
             // Continually loop forever to keep the program (and watcher) alive
             while (true)
             {
                 // Reduce CPU usage marginally
                 Thread.Sleep(1);
             }
+#endif
         }
 
         private static CBluntParser CreateParser(string input)
