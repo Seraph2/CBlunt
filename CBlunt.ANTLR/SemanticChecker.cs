@@ -10,8 +10,10 @@ namespace CBlunt.ANTLR
 {
     class SemanticChecker : CBluntBaseVisitor<int>
     {
-        private Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
-        private LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
+        private readonly Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
+        private readonly LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
+        private readonly LinkedList<ExpressionStore> _expressionStore = new LinkedList<ExpressionStore>();
+        private string _currentMethodType = "";
 
         void SyntaxError(object context, string err)
         {
@@ -35,18 +37,7 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitStart");
 #endif
 
-            // Start by visiting declarations. This is done because of the global scope
-            for (int i = 0; i < context.declaration().Count(); ++i)
-                Visit(context.declaration(i));
-
-            // Then begin visiting methods
-            for (int i = 0; i < context.function().Count(); ++i)
-                Visit(context.function(i));
-
-            // After visiting the whole program, perform after-processing checks
-
             // Determine whether the entry point exists
-
             var mainMethodProperties = GetMethodProperties("Main");
 
             if (mainMethodProperties == null)
@@ -65,7 +56,7 @@ namespace CBlunt.ANTLR
             Console.WriteLine("Finished semantic checking");
 #endif
 
-            return 0;
+            return base.VisitStart(context);
         }
 
         public override int VisitDeclaration([NotNull]CBluntParser.DeclarationContext context)
@@ -106,66 +97,24 @@ namespace CBlunt.ANTLR
             }
 
             // If no expression is found, simply create the variable and return as the variable cannot be type-checked against
+            // Example: text a;
             if (context.expression() == null)
             {
                 CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
                 return 0;
             }
 
-            // Simplify retrieval of the expression's parameter using a variable. Note that this does not properly handle the grammar's way, as I intentionally omit "calculation*" for testing purposes
-            var contextExpressionParameter = context.expression().parameter();
+            _expressionStore.AddLast(new ExpressionStore());
 
-            /// TODO: It may be necessary to determine a better way to do this, potentially utilizing visitor more correctly as this MAY complicate things later
-            string foundParameterType = "";
+            // Visit the expression
+            Visit(context.expression());
 
-            // Get the name of the expected parameter for potential error output further below
-            if (contextExpressionParameter.STRING() != null)
-                foundParameterType = "text";
+            // Set the found parameter type
+            var foundParameterType = _expressionStore.Last.Value.Type;
 
-            if (contextExpressionParameter.NUMBER() != null)
-                foundParameterType = "number";
+            _expressionStore.RemoveLast();
 
-            if (contextExpressionParameter.truth() != null)
-                foundParameterType = "bool";
-
-            if (contextExpressionParameter.ID() != null)
-            {
-                var variablePropeties = GetDeclaredVariable(contextExpressionParameter.ID().GetText());
-
-                if (variablePropeties == null)
-                    return 1;
-
-                if (!variablePropeties.Initialized)
-                {
-                    SyntaxError(context, "Cannot assign the value of variable " + contextExpressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet.");
-                    return 1;
-                }
-
-                foundParameterType = variablePropeties.Type;
-            }
-
-            if (contextExpressionParameter.functioncall() != null)
-            {
-                // The name of the method
-                var methodName = contextExpressionParameter.functioncall().ID().GetText();
-
-                // If the visitor returns 1, there was a problem. Stop declaration check.
-                if (Visit(contextExpressionParameter.functioncall()) == 1)
-                    return 1;
-
-                // Set the expected parameter type to the method's properties
-                var methodProperties = GetMethodProperties(methodName);
-
-                if (methodProperties == null)
-                {
-                    SyntaxError(context, "Attempt to get method " + methodName + " that does not exist");
-                    return 1;
-                }
-
-                foundParameterType = methodProperties.Type;
-            }
-
-            // Check the variable's type with the found type
+            // Check the variable's type against the found type
             if (variableType != foundParameterType)
             {
                 SyntaxError(context, "Expected " + variableType + ", got " + foundParameterType);
@@ -225,26 +174,94 @@ namespace CBlunt.ANTLR
                 _methodScopeLinkedList.Last.Value.Add(parameterName, variableProperties);
             }
 
-            // Visit the block of the function
+            _currentMethodType = methodType;
+
+            // Visit the block of the method
             Visit(context.block());
 
-            // Remove the scope
+            // After the function has finished, remove the scope
             _methodScopeLinkedList.RemoveLast();
 
             return 0;
         }
 
-        public override int VisitBlock([NotNull]CBluntParser.BlockContext context)
+        public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
         {
 #if DEBUG
             Console.WriteLine("VisitBlock");
 #endif
 
-             // Iterate over all potential statements in the block. There can be 0 statements here
-            for (var i = 0; i < context.statement().Count(); ++i)
+            if (context.Parent.RuleIndex != CBluntParser.RULE_function)
+                _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
+
+            // In the initial scope of the method, check whether there exists at least one return. Error if there exists multiple
+            int returnCount = 0;
+
+            for (int i = 0; i < context.statement().Count(); ++i)
             {
-                Visit(context.statement(i));
+                // Skip non-function returns
+                if (context.statement(i).functionreturn() == null)
+                {
+                    Visit(context.statement(i));
+                    continue;
+                }
+
+                // Cannot break here as there MAY exist multiple returns
+                ++returnCount;
+
+                // Check for void: it cannot return anything
+                if (context.statement(i).functionreturn().expression() != null && _currentMethodType == "void")
+                {
+                    SyntaxError(context, "Void methods cannot return values");
+                    return 1;
+                }
+
+                // Check for non-void: it MUST return something
+                if (context.statement(i).functionreturn().expression() == null && _currentMethodType != "void")
+                {
+                    SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " must return a value");
+                    return 1;
+                }
+
+                // If there exists multiple returns, there is a problem. This accounts for both void and other types
+                if (returnCount > 1)
+                {
+                    SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " cannot return multiple times in its method scope");
+                    return 1;
+                }
+
+                // Initial checks done, now expression has to be visited to determine the return type according to method type
+                // void can of course be skipped
+                if (_currentMethodType == "void")
+                    continue;
+
+                // Add to the expression store
+                _expressionStore.AddLast(new ExpressionStore());
+
+                // Get the type returned
+                Visit(context.statement(i).functionreturn().expression());
+
+                var returnType = _expressionStore.Last.Value.Type;
+
+                if (_currentMethodType != returnType)
+                {
+                    SyntaxError(context, "A type " + returnType + " is returned, a type " + _currentMethodType + " was expected to be returned instead");
+                    return 1;
+                }
+
+                _expressionStore.RemoveLast();
+
             }
+
+            // If there exists no return and it is NOT a method of type void, output an error
+            if (returnCount == 0 && _currentMethodType != "void" && _methodScopeLinkedList.Count == 1)
+            {
+                SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " does not return a type " + _currentMethodType);
+                return 1;
+            }
+
+            if (context.Parent.RuleIndex != CBluntParser.RULE_function)
+                _methodScopeLinkedList.RemoveLast();
 
             return 0;
         }
@@ -255,17 +272,145 @@ namespace CBlunt.ANTLR
             Console.WriteLine("VisitExpression");
 #endif
 
-            /// TODO: HANDLE RECURSION HERE
+            var parameter = context.parameter();
+            var assignmentType = GetParameterType(context, parameter);
 
-            //Console.WriteLine(1);
+            if (!AddToExpressionStore(assignmentType))
+                return 1;
 
-            if (context.parameter() != null)
-                Visit(context.parameter());
+            var calculationCount = context.calculation().Count();
 
-            /*if (context.calculation() != null)
-                Visit(context.calculation(0));*/
+            // With no calculations, it is simply the assignment type
+            if (calculationCount == 0)
+            {
+                _expressionStore.Last.Value.Type = assignmentType;
+                return 0;
+            }
+
+            for (int i = 0; i < calculationCount; ++i)
+            {
+                if (Visit(context.calculation(i)) == 1)
+                    return 1;
+            }
 
             return 0;
+        }
+
+        public override int VisitCalculation([NotNull] CBluntParser.CalculationContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitCalculation");
+#endif
+
+            var operatorContext = context.@operator().GetText();
+
+            // If a parameter was found, add it to the store
+            if (context.parameter() != null)
+            {
+                var parameter = context.parameter();
+                var parameterType = GetParameterType(context, parameter);
+
+                var prevExpressionStoreType = _expressionStore.Last.Value.ExpressionTypes.Last;
+
+                if (prevExpressionStoreType == null)
+                {
+                    Console.WriteLine(1);
+                    if (!AddToExpressionStore(parameterType))
+                        return 1;
+
+                    return 0;
+                }
+
+                var prevExpressionStoreValue = prevExpressionStoreType.Value;
+
+                // Perform semantics on operator, it is not possible to subtract ex. a string from a number
+                // If the type is already text, the numbers cannot turn the expression store into a number again. It will remain text
+                switch (operatorContext)
+                {
+                    case "+":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Last.Value.Type == "text")
+                                break;
+
+                            _expressionStore.Last.Value.Type = "number";
+                            break;
+                        }
+
+                        if (prevExpressionStoreValue == "text" && parameterType == "text")
+                        {
+                            _expressionStore.Last.Value.Type = "text";
+                            break;
+                        }
+                            
+
+                        if (prevExpressionStoreValue == "number" && parameterType == "text")
+                        {
+                            _expressionStore.Last.Value.Type = "text";
+                            break;
+                        }
+
+                        if (prevExpressionStoreValue == "text" && parameterType == "number")
+                        {
+                            _expressionStore.Last.Value.Type = "text";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot add a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+
+                    case "-":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Last.Value.Type == "text")
+                                break;
+
+                            _expressionStore.Last.Value.Type = "number";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot subtract a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+
+                    case "*":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Last.Value.Type == "text")
+                                break;
+
+                            _expressionStore.Last.Value.Type = "number";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot multiply a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+
+                    case "/":
+                        if (prevExpressionStoreValue == "number" && parameterType == "number")
+                        {
+                            if (_expressionStore.Last.Value.Type == "text")
+                                break;
+
+                            _expressionStore.Last.Value.Type = "number";
+                            break;
+                        }
+
+                        SyntaxError(context, "Cannot divide a variable of type " + prevExpressionStoreValue + " with a variable of type " + parameterType);
+                        return 1;
+                }
+
+                if (!AddToExpressionStore(parameterType))
+                    return 1;
+            }
+
+            // If there is an expression instead, visit it
+            if (context.expression() != null)
+            {
+                if (Visit(context.expression()) == 1)
+                    return 1;
+            }
+            
+            return base.VisitCalculation(context);
         }
 
         public override int VisitParameter([NotNull]CBluntParser.ParameterContext context)
@@ -273,11 +418,6 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitParameter");
 #endif
-
-            if (context.ID() != null)
-            {
-                
-            }
 
             return 0;
         }
@@ -313,58 +453,14 @@ namespace CBlunt.ANTLR
             }
 
             // Get the expected assignment value, aka the value we expect the variable to be assigned
-            var expressionParameter = context.expression().parameter();
-            var assignmentType = "";
+            _expressionStore.AddLast(new ExpressionStore());
 
-            if (expressionParameter.STRING() != null)
-                assignmentType = "text";
+            Visit(context.expression());
 
-            if (expressionParameter.NUMBER() != null)
-                assignmentType = "number";
+            // Set assignment type from expression, compare it against operator type
+            var assignmentType = _expressionStore.Last.Value.Type;
 
-            if (expressionParameter.truth() != null)
-                assignmentType = "bool";
-
-            if (expressionParameter.ID() != null)
-            {
-                var assignmentVariableProperties = GetDeclaredVariable(expressionParameter.ID().GetText());
-
-                if (assignmentVariableProperties == null)
-                {
-                    SyntaxError(context, "Cannot assign the value of variable " + expressionParameter.ID().GetText() + " to variable " + variableName + " as it does not exist");
-                    return 1;
-                }
-
-                // Determine whether the variable we are trying to assign has been initialized
-                // We can assign an initialized variable to an uninitialized, but not an uninitialized variable to an initialized variable
-                if (!assignmentVariableProperties.Initialized)
-                {
-                    SyntaxError(context, "Cannot assign the value of variable " + expressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet");
-                    return 1;
-                }
-
-                // If all checks passes, grab the assignment type
-                assignmentType = assignmentVariableProperties.Type;
-            }
-
-            if (expressionParameter.functioncall() != null)
-            {
-                // Visit the functioncall for potential recursive handling. If it returns 1 it means that an error has occured and
-                // checking should stop
-                if (Visit(expressionParameter.functioncall()) == 1)
-                    return 1;
-
-                /// TODO: Maybe move the part below this up above the Visit
-                var methodProperties = GetMethodProperties(expressionParameter.functioncall().ID().GetText());
-
-                if (methodProperties == null)
-                {
-                    SyntaxError(context, "Method with name " + expressionParameter.functioncall().ID().GetText() + " does not exist");
-                    return 1;
-                }
-
-                assignmentType = methodProperties.Type;
-            }
+            _expressionStore.RemoveLast();
 
             switch (operatorType)
             {
@@ -415,7 +511,7 @@ namespace CBlunt.ANTLR
             // If all checks passes, the variable will also be initialized
             variableProperties.Initialized = true;
 
-            return base.VisitVariableedit(context);
+            return 0;
         }
 
         public override int VisitStatement([NotNull] CBluntParser.StatementContext context)
@@ -470,67 +566,11 @@ namespace CBlunt.ANTLR
             // Compare the method's parameters with the found parameters to see whether they match
             for (int i = 0; i < context.expression().Count(); ++i)
             {
-                var parameterType = "";
+                _expressionStore.AddLast(new ExpressionStore());
+
+                Visit(context.expression(i));
+
                 var parameterCount = i + 1;
-
-                /// TODO: Handle calculation recursively
-                var functionCallParameterType = context.expression(i).parameter();
-
-                if (functionCallParameterType.STRING() != null)
-                    parameterType = "text";
-
-                if (functionCallParameterType.NUMBER() != null)
-                    parameterType = "number";
-
-                if (functionCallParameterType.truth() != null)
-                    parameterType = "bool";
-
-                // Get the variable, if null we return. Otherwise the variable's type is assigned
-                if (functionCallParameterType.ID() != null)
-                {
-                    // Grab the variable's properties
-                    var variableProperties = GetDeclaredVariable(functionCallParameterType.GetText());
-
-                    // Determine if it exists
-                    if (variableProperties == null)
-                    {
-                        SyntaxError(context, "Passed variable " + functionCallParameterType.GetText() + " as parameter " + parameterCount + " to method " + methodNiceName + " does not exist");
-                        return 1;
-                    }
-
-                    // Check if the variable has been initialized
-                    if (!variableProperties.Initialized)
-                    {
-                        SyntaxError(context, "Cannot pass variable " + functionCallParameterType.GetText() + " to method " + methodName + " as it has not been initialized yet.");
-                        return 1;
-                    }
-
-                    parameterType = variableProperties.Type;
-                }
-                
-                if (functionCallParameterType.functioncall() != null)
-                {
-                    // Handle functioncall recursively
-                    if (Visit(functionCallParameterType.functioncall()) == 1)
-                        return 1;
-
-                    var methodHere = GetMethodProperties(functionCallParameterType.functioncall().ID().GetText());
-
-                    /*
-                    /// TODO: CORRECT ERROR HERE, DETERMINE WHETHER THIS IS ALREADY HANDLED IN FUNCTIONCALL
-                    if (methodHere == null)
-                        return 1;*/
-
-                    parameterType = methodHere.Type;
-                }
-
-                // If nothing matched, we got a problem
-                if (parameterType == "")
-                {
-                    SyntaxError(context, "Nothing matched parameter number " + parameterCount + " for method " + methodNiceName);
-                    Console.WriteLine("Houston, we got a problem");
-                    return 1;
-                }
 
                 /// TODO: Potentially != here instead
                 if (methodProperties.ParameterTypes.Count < parameterCount)
@@ -543,14 +583,91 @@ namespace CBlunt.ANTLR
                 var expectedParameterType = methodProperties.ParameterTypes[i];
 
                 // If it is not equal to the retrieved parameter type, be it variable, functioncall etc, an error is imminent
-                if (expectedParameterType != parameterType)
+                if (expectedParameterType != _expressionStore.Last.Value.Type)
                 {
-                    SyntaxError(context, "Method " + methodNiceName + " got type " + parameterType + " as parameter number " + parameterCount + ", expected " + expectedParameterType);
+                    SyntaxError(context, "Method " + methodNiceName + " got type " + _expressionStore.Last.Value.Type + " as parameter number " + parameterCount + ", expected " + expectedParameterType);
+                    return 1;
+                }
+
+                _expressionStore.RemoveLast();
+            }
+
+            return 0;
+        }
+
+        public override int VisitLogic([NotNull] CBluntParser.LogicContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitLogic");
+#endif
+
+            // Get left-hand side
+            _expressionStore.AddLast(new ExpressionStore());
+            Visit(context.expression(0));
+            var expr1Type = _expressionStore.Last.Value.Type;
+            _expressionStore.RemoveLast();
+
+            // Get right-hand side
+            _expressionStore.AddLast(new ExpressionStore());
+            Visit(context.expression(1));
+            var expr2Type = _expressionStore.Last.Value.Type;
+            _expressionStore.RemoveLast();
+
+            if (expr1Type != "number")
+            {
+                SyntaxError(context, "Left-hand side must be of a type number");
+                return 1;
+            }
+
+            if (expr2Type != "number")
+            {
+                SyntaxError(context, "Right-hand side must be of a type number");
+                return 1;
+            }
+
+            return 0;
+        }
+
+        public override int VisitCondition([NotNull] CBluntParser.ConditionContext context)
+        {
+            // Specialized handling for ID hence it is here
+            if (context.ID() != null)
+            {
+                var variableName = context.ID().GetText();
+
+                var variableProperties = GetDeclaredVariable(variableName);
+
+                if (variableProperties == null)
+                {
+                    SyntaxError(context, "Variable " + variableName + " does not exist");
+                    return 1;
+                }
+
+                if (!variableProperties.Initialized)
+                {
+                    SyntaxError(context, "Variable " + variableName + " has not been initialized");
+                    return 1;
+                }
+
+                if (variableProperties.Type != "bool")
+                {
+                    SyntaxError(context, "Variable " + variableName + " must be of a type bool");
                     return 1;
                 }
             }
 
-            return base.VisitFunctioncall(context);
+            return base.VisitCondition(context);
+        }
+
+        public override int VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context)
+        {
+#if DEBUG
+            Console.WriteLine("VisitFunctionreturn");
+#endif
+
+            /// TODO: Evaluate here whatever is attempted to return is correct according to the method's type
+
+            return base.VisitFunctionreturn(context);
         }
 
         /*
@@ -666,6 +783,94 @@ namespace CBlunt.ANTLR
 
             // Return either null or the variable's properties
             return variableProperties;
+        }
+
+        bool AddToExpressionStore(string parameterType)
+        {
+            // Empty string means something is wrong
+            if (parameterType == "")
+                return false;
+
+            // Skip void completely, it cannot be used in an expression
+            if (parameterType == "void")
+                return false;
+
+            // Variable for previous expression
+            string prevExpressionStoreType = null;
+
+            // If there exists a previous node, get its type
+            if (_expressionStore.Last.Value.ExpressionTypes.Last != null)
+                prevExpressionStoreType = _expressionStore.Last.Value.ExpressionTypes.Last.Value;
+
+            // If there exists no previous expression, simply store the parameter type
+            if (prevExpressionStoreType == null)
+            {
+                _expressionStore.Last.Value.ExpressionTypes.AddLast(parameterType);
+                return true;
+            }
+
+            _expressionStore.Last.Value.ExpressionTypes.AddLast(parameterType);
+
+            return true;
+        }
+
+        string GetParameterType(object context, CBluntParser.ParameterContext parameter)
+        {
+            var assignmentType = "";
+
+            if (parameter.STRING() != null)
+                assignmentType = "text";
+
+            if (parameter.NUMBER() != null)
+                assignmentType = "number";
+
+            if (parameter.truth() != null)
+                assignmentType = "bool";
+
+            if (parameter.ID() != null)
+            {
+                var variableName = parameter.ID().GetText();
+
+                var assignmentVariableProperties = GetDeclaredVariable(parameter.ID().GetText());
+
+                if (assignmentVariableProperties == null)
+                {
+                    SyntaxError(context, "Variable " + variableName + " does not exist");
+                    return "";
+                }
+
+                // Determine whether the variable we are trying to assign has been initialized
+                // We can assign an initialized variable to an uninitialized, but not an uninitialized variable to an initialized variable
+                if (!assignmentVariableProperties.Initialized)
+                {
+                    SyntaxError(context, "Variable " + variableName + " has not been initialized yet");
+                    return "";
+                }
+
+                // If all checks passes, grab the assignment type
+                assignmentType = assignmentVariableProperties.Type;
+            }
+
+            if (parameter.functioncall() != null)
+            {
+                // Visit the functioncall for potential recursive handling. If it returns 1 it means that an error has occured and
+                // checking should stop
+                if (Visit(parameter.functioncall()) == 1)
+                    return "";
+
+                /// TODO: Maybe move the part below this up above the Visit
+                var methodProperties = GetMethodProperties(parameter.functioncall().ID().GetText());
+
+                if (methodProperties == null)
+                {
+                    SyntaxError(context, "Method with name " + parameter.functioncall().ID().GetText() + " does not exist");
+                    return "";
+                }
+
+                assignmentType = methodProperties.Type;
+            }
+
+            return assignmentType;
         }
 
         /*

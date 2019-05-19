@@ -56,7 +56,7 @@ condition
 	;
 
 logic
-	: expression relational expression
+	: expression relational expression // 1 + 2 >= 12 + 87 + 12
 	;
 
 relational
@@ -94,8 +94,8 @@ parameter
 	| functioncall
 	;
 
-functionreturn
-	: 'return' expression
+functionreturn // return "test"
+	: 'return' expression?
 	;
 
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;

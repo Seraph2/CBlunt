@@ -27,4 +27,16 @@ namespace CBlunt.ANTLR
         // The list of parameter types this method takes (number, bool, text)
         public List<string> ParameterTypes = new List<string>();
     }
+
+    /*
+    * Store for expression
+    */
+    public class ExpressionStore
+    {
+        // The current type of the expression
+        public string Type { get; set; }
+
+        // The list of parameter types for the expression
+        public LinkedList<string> ExpressionTypes = new LinkedList<string>();
+    }
 }
