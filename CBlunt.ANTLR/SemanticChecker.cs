@@ -13,7 +13,7 @@ namespace CBlunt.ANTLR
         private readonly Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
         private readonly LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
         private readonly LinkedList<ExpressionStore> _expressionStore = new LinkedList<ExpressionStore>();
-        private string _currentMethodName = "";
+        private string _currentMethodType = "";
 
         void SyntaxError(object context, string err)
         {
@@ -104,7 +104,7 @@ namespace CBlunt.ANTLR
                 return 0;
             }
 
-            _expressionStore.Clear();
+            _expressionStore.AddLast(new ExpressionStore());
 
             // Visit the expression
             Visit(context.expression());
@@ -112,7 +112,7 @@ namespace CBlunt.ANTLR
             // Set the found parameter type
             var foundParameterType = _expressionStore.Last.Value.Type;
 
-            _expressionStore.Clear();
+            _expressionStore.RemoveLast();
 
             // Check the variable's type against the found type
             if (variableType != foundParameterType)
@@ -123,7 +123,7 @@ namespace CBlunt.ANTLR
 
             CreateVariable(parentRuleIndex, variableName, variableType, variableValue);
 
-            return base.VisitDeclaration(context);
+            return 0;
         }
 
         public override int VisitFunction([NotNull]CBluntParser.FunctionContext context)
@@ -174,51 +174,7 @@ namespace CBlunt.ANTLR
                 _methodScopeLinkedList.Last.Value.Add(parameterName, variableProperties);
             }
 
-            // Detect if there exists a return in a method that is not of type void. Void can return too but it's not mandatory
-            var blockStatement = context.block().statement();
-
-            // In the initial scope of the method, check whether there exists at least one return. Error if there exists multiple
-            int returnCount = 0;
-
-            for (int i = 0; i < blockStatement.Count(); ++i)
-            {
-                // Skip non-function returns
-                if (context.block().statement(i).functionreturn() == null)
-                    continue;
-
-                // Cannot break here as there MAY exist multiple returns
-                ++returnCount;
-
-                // Check for void: it cannot return anything
-                if (context.block().statement(i).functionreturn().expression() != null && methodType == "void")
-                {
-                    SyntaxError(context, "Void methods cannot return values");
-                    return 1;
-                }
-
-                // Check for non-void: it MUST return something
-                if (context.block().statement(i).functionreturn().expression() == null && methodType != "void")
-                {
-                    SyntaxError(context, "Method " + methodName + " with type " + methodType + " must return a value");
-                    return 1;
-                }
-
-                // If there exists multiple returns, there is a problem. This accounts for both void and other types
-                if (returnCount > 1)
-                {
-                    SyntaxError(context, "Method " + methodName + " with type " + methodType + " cannot return multiple times in its method scope");
-                    return 1;
-                }
-            }
-
-            // If there exists no return and it is NOT a method of type void, output an error
-            if (returnCount == 0 && methodType != "void")
-            {
-                SyntaxError(context, "Method " + methodName + " with type " + methodType + " does not return a type " + methodType);
-                return 1;
-            }
-
-            _currentMethodName = methodName;
+            _currentMethodType = methodType;
 
             // Visit the block of the method
             Visit(context.block());
@@ -226,7 +182,82 @@ namespace CBlunt.ANTLR
             // After the function has finished, remove the scope
             _methodScopeLinkedList.RemoveLast();
 
-            _currentMethodName = "";
+            return 0;
+        }
+
+        public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
+        {
+            if (context.Parent.RuleIndex != CBluntParser.RULE_function)
+                _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
+
+            // In the initial scope of the method, check whether there exists at least one return. Error if there exists multiple
+            int returnCount = 0;
+
+            for (int i = 0; i < context.statement().Count(); ++i)
+            {
+                // Skip non-function returns
+                if (context.statement(i).functionreturn() == null)
+                {
+                    Visit(context.statement(i));
+                    continue;
+                }
+
+                // Cannot break here as there MAY exist multiple returns
+                ++returnCount;
+
+                // Check for void: it cannot return anything
+                if (context.statement(i).functionreturn().expression() != null && _currentMethodType == "void")
+                {
+                    SyntaxError(context, "Void methods cannot return values");
+                    return 1;
+                }
+
+                // Check for non-void: it MUST return something
+                if (context.statement(i).functionreturn().expression() == null && _currentMethodType != "void")
+                {
+                    SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " must return a value");
+                    return 1;
+                }
+
+                // If there exists multiple returns, there is a problem. This accounts for both void and other types
+                if (returnCount > 1)
+                {
+                    SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " cannot return multiple times in its method scope");
+                    return 1;
+                }
+
+                // Initial checks done, now expression has to be visited to determine the return type according to method type
+                // void can of course be skipped
+                if (_currentMethodType == "void")
+                    continue;
+
+                // Add to the expression store
+                _expressionStore.AddLast(new ExpressionStore());
+
+                // Get the type returned
+                Visit(context.statement(i).functionreturn().expression());
+
+                var returnType = _expressionStore.Last.Value.Type;
+
+                if (_currentMethodType != returnType)
+                {
+                    SyntaxError(context, "A type " + returnType + " is returned, a type " + _currentMethodType + " was expected to be returned instead");
+                    return 1;
+                }
+
+                _expressionStore.RemoveLast();
+
+            }
+
+            // If there exists no return and it is NOT a method of type void, output an error
+            if (returnCount == 0 && _currentMethodType != "void" && _methodScopeLinkedList.Count == 1)
+            {
+                SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " does not return a type " + _currentMethodType);
+                return 1;
+            }
+
+            if (context.Parent.RuleIndex != CBluntParser.RULE_function)
+                _methodScopeLinkedList.RemoveLast();
 
             return 0;
         }
@@ -244,6 +275,13 @@ namespace CBlunt.ANTLR
                 return 1;
 
             var calculationCount = context.calculation().Count();
+
+            // With no calculations, it is simply the assignment type
+            if (calculationCount == 0)
+            {
+                _expressionStore.Last.Value.Type = assignmentType;
+                return 0;
+            }
 
             for (int i = 0; i < calculationCount; ++i)
             {
@@ -264,11 +302,11 @@ namespace CBlunt.ANTLR
                 var parameter = context.parameter();
                 var parameterType = GetParameterType(context, parameter);
 
-                /*
-                var prevExpressionStoreType = _expressionStore.ExpressionTypes.Last;
+                var prevExpressionStoreType = _expressionStore.Last.Value.ExpressionTypes.Last;
 
                 if (prevExpressionStoreType == null)
                 {
+                    Console.WriteLine(1);
                     if (!AddToExpressionStore(parameterType))
                         return 1;
 
@@ -284,29 +322,29 @@ namespace CBlunt.ANTLR
                     case "+":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Type == "text")
+                            if (_expressionStore.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Type = "number";
+                            _expressionStore.Last.Value.Type = "number";
                             break;
                         }
 
                         if (prevExpressionStoreValue == "text" && parameterType == "text")
                         {
-                            _expressionStore.Type = "text";
+                            _expressionStore.Last.Value.Type = "text";
                             break;
                         }
                             
 
                         if (prevExpressionStoreValue == "number" && parameterType == "text")
                         {
-                            _expressionStore.Type = "text";
+                            _expressionStore.Last.Value.Type = "text";
                             break;
                         }
 
                         if (prevExpressionStoreValue == "text" && parameterType == "number")
                         {
-                            _expressionStore.Type = "text";
+                            _expressionStore.Last.Value.Type = "text";
                             break;
                         }
 
@@ -316,10 +354,10 @@ namespace CBlunt.ANTLR
                     case "-":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Type == "text")
+                            if (_expressionStore.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Type = "number";
+                            _expressionStore.Last.Value.Type = "number";
                             break;
                         }
 
@@ -329,10 +367,10 @@ namespace CBlunt.ANTLR
                     case "*":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Type == "text")
+                            if (_expressionStore.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Type = "number";
+                            _expressionStore.Last.Value.Type = "number";
                             break;
                         }
 
@@ -342,10 +380,10 @@ namespace CBlunt.ANTLR
                     case "/":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Type == "text")
+                            if (_expressionStore.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Type = "number";
+                            _expressionStore.Last.Value.Type = "number";
                             break;
                         }
 
@@ -355,7 +393,6 @@ namespace CBlunt.ANTLR
 
                 if (!AddToExpressionStore(parameterType))
                     return 1;
-                    */
             }
 
             // If there is an expression instead, visit it
@@ -413,60 +450,14 @@ namespace CBlunt.ANTLR
             }
 
             // Get the expected assignment value, aka the value we expect the variable to be assigned
+            _expressionStore.AddLast(new ExpressionStore());
 
-            // !!! EDIT HERE FOR EXPRESSION
-            var expressionParameter = context.expression().parameter();
-            var assignmentType = "";
+            Visit(context.expression());
 
-            if (expressionParameter.STRING() != null)
-                assignmentType = "text";
+            // Set assignment type from expression, compare it against operator type
+            var assignmentType = _expressionStore.Last.Value.Type;
 
-            if (expressionParameter.NUMBER() != null)
-                assignmentType = "number";
-
-            if (expressionParameter.truth() != null)
-                assignmentType = "bool";
-
-            if (expressionParameter.ID() != null)
-            {
-                var assignmentVariableProperties = GetDeclaredVariable(expressionParameter.ID().GetText());
-
-                if (assignmentVariableProperties == null)
-                {
-                    SyntaxError(context, "Cannot assign the value of variable " + expressionParameter.ID().GetText() + " to variable " + variableName + " as it does not exist");
-                    return 1;
-                }
-
-                // Determine whether the variable we are trying to assign has been initialized
-                // We can assign an initialized variable to an uninitialized, but not an uninitialized variable to an initialized variable
-                if (!assignmentVariableProperties.Initialized)
-                {
-                    SyntaxError(context, "Cannot assign the value of variable " + expressionParameter.ID().GetText() + " to variable " + variableName + " as it has not been initialized yet");
-                    return 1;
-                }
-
-                // If all checks passes, grab the assignment type
-                assignmentType = assignmentVariableProperties.Type;
-            }
-
-            if (expressionParameter.functioncall() != null)
-            {
-                // Visit the functioncall for potential recursive handling. If it returns 1 it means that an error has occured and
-                // checking should stop
-                if (Visit(expressionParameter.functioncall()) == 1)
-                    return 1;
-
-                /// TODO: Maybe move the part below this up above the Visit
-                var methodProperties = GetMethodProperties(expressionParameter.functioncall().ID().GetText());
-
-                if (methodProperties == null)
-                {
-                    SyntaxError(context, "Method with name " + expressionParameter.functioncall().ID().GetText() + " does not exist");
-                    return 1;
-                }
-
-                assignmentType = methodProperties.Type;
-            }
+            _expressionStore.RemoveLast();
 
             switch (operatorType)
             {
@@ -517,7 +508,7 @@ namespace CBlunt.ANTLR
             // If all checks passes, the variable will also be initialized
             variableProperties.Initialized = true;
 
-            return base.VisitVariableedit(context);
+            return 0;
         }
 
         public override int VisitStatement([NotNull] CBluntParser.StatementContext context)
@@ -570,14 +561,95 @@ namespace CBlunt.ANTLR
             }
 
             // Compare the method's parameters with the found parameters to see whether they match
-            // !!! EDIT HERE FOR EXPRESSION. SPECIALIZED HANDLING
-
             for (int i = 0; i < context.expression().Count(); ++i)
             {
+                _expressionStore.AddLast(new ExpressionStore());
+
                 Visit(context.expression(i));
+
+                var parameterCount = i + 1;
+
+                /// TODO: Potentially != here instead
+                if (methodProperties.ParameterTypes.Count < parameterCount)
+                {
+                    SyntaxError(context, "Method " + methodNiceName + " does not take " + parameterCount + " parameters");
+                    return 1;
+                }
+
+                // Get the expected parameter type from the method's properties
+                var expectedParameterType = methodProperties.ParameterTypes[i];
+
+                // If it is not equal to the retrieved parameter type, be it variable, functioncall etc, an error is imminent
+                if (expectedParameterType != _expressionStore.Last.Value.Type)
+                {
+                    SyntaxError(context, "Method " + methodNiceName + " got type " + _expressionStore.Last.Value.Type + " as parameter number " + parameterCount + ", expected " + expectedParameterType);
+                    return 1;
+                }
+
+                _expressionStore.RemoveLast();
             }
 
-            return base.VisitFunctioncall(context);
+            return 0;
+        }
+
+        public override int VisitLogic([NotNull] CBluntParser.LogicContext context)
+        {
+            // Get left-hand side
+            _expressionStore.AddLast(new ExpressionStore());
+            Visit(context.expression(0));
+            var expr1Type = _expressionStore.Last.Value.Type;
+            _expressionStore.RemoveLast();
+
+            // Get right-hand side
+            _expressionStore.AddLast(new ExpressionStore());
+            Visit(context.expression(1));
+            var expr2Type = _expressionStore.Last.Value.Type;
+            _expressionStore.RemoveLast();
+
+            if (expr1Type != "number")
+            {
+                SyntaxError(context, "Left-hand side must be of a type number");
+                return 1;
+            }
+
+            if (expr2Type != "number")
+            {
+                SyntaxError(context, "Right-hand side must be of a type number");
+                return 1;
+            }
+
+            return 0;
+        }
+
+        public override int VisitCondition([NotNull] CBluntParser.ConditionContext context)
+        {
+            // Specialized handling for ID hence it is here
+            if (context.ID() != null)
+            {
+                var variableName = context.ID().GetText();
+
+                var variableProperties = GetDeclaredVariable(variableName);
+
+                if (variableProperties == null)
+                {
+                    SyntaxError(context, "Variable " + variableName + " does not exist");
+                    return 1;
+                }
+
+                if (!variableProperties.Initialized)
+                {
+                    SyntaxError(context, "Variable " + variableName + " has not been initialized");
+                    return 1;
+                }
+
+                if (variableProperties.Type != "bool")
+                {
+                    SyntaxError(context, "Variable " + variableName + " must be of a type bool");
+                    return 1;
+                }
+            }
+
+            return base.VisitCondition(context);
         }
 
         public override int VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context)
@@ -716,17 +788,17 @@ namespace CBlunt.ANTLR
             string prevExpressionStoreType = null;
 
             // If there exists a previous node, get its type
-            /*if (_expressionStore.ExpressionTypes.Last != null)
-                prevExpressionStoreType = _expressionStore.ExpressionTypes.Last.Value;
+            if (_expressionStore.Last.Value.ExpressionTypes.Last != null)
+                prevExpressionStoreType = _expressionStore.Last.Value.ExpressionTypes.Last.Value;
 
             // If there exists no previous expression, simply store the parameter type
             if (prevExpressionStoreType == null)
             {
-                _expressionStore.ExpressionTypes.AddLast(parameterType);
+                _expressionStore.Last.Value.ExpressionTypes.AddLast(parameterType);
                 return true;
             }
 
-            _expressionStore.ExpressionTypes.AddLast(parameterType);*/
+            _expressionStore.Last.Value.ExpressionTypes.AddLast(parameterType);
 
             return true;
         }
@@ -786,8 +858,6 @@ namespace CBlunt.ANTLR
 
                 assignmentType = methodProperties.Type;
             }
-
-            
 
             return assignmentType;
         }

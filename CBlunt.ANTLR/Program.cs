@@ -81,7 +81,7 @@ namespace CBlunt.ANTLR
 
             // Show the error
             Console.WriteLine("Parser error:");
-            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex);
         }
 
         static void Watcher_Changed(object sender, FileSystemEventArgs e)
