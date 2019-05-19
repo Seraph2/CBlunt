@@ -15,7 +15,7 @@ namespace CBlunt.ANTLR
     class Program
     {
         private static FileSystemWatcher _watcher;
-        private static string FileText;
+        private static string _fileText;
         private static string _scriptDirectory = "scripts";
         private static string _outputDirectory = "";
 
@@ -24,8 +24,8 @@ namespace CBlunt.ANTLR
             //Mostly used to check whether the program is compiled directly or run from a batch.
             if (args.Length > 0)
             {
-                ScriptDirectory = args[0];
-                OutputDirectory = args[1];
+                _scriptDirectory = args[0];
+                _outputDirectory = args[1];
             }
 
             LoadScripts(_scriptDirectory);
@@ -79,7 +79,7 @@ namespace CBlunt.ANTLR
             var parser = CreateParser(_fileText);
 
             // Generate code
-            new CodeGenerator(filePath, OutputDirectory).Visit(parser.start());
+            new CodeGenerator(filePath, _outputDirectory).Visit(parser.start());
         }
 
         private static void DisplayError(string filePath, Exception ex)

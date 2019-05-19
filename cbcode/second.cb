@@ -1,0 +1,4 @@
+void Main(){
+	text a = "This is the second file";
+	WriteLine(a);
+}

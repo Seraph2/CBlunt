@@ -8,5 +8,5 @@ SET DOTNET_PATH=C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319
 
 SET CONVERTPATH=%~dp0
 ECHO %CONVERTPATH%
-for /r %%s in (*) do ( %DOTNET_PATH%\csc.exe %%s )
+for %%s in (convertedcode\*.cs) do ( %DOTNET_PATH%\csc.exe %%s )
 pause
