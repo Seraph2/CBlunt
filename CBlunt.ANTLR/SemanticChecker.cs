@@ -187,6 +187,10 @@ namespace CBlunt.ANTLR
 
         public override int VisitBlock([NotNull] CBluntParser.BlockContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitBlock");
+#endif
+
             if (context.Parent.RuleIndex != CBluntParser.RULE_function)
                 _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
 
@@ -294,6 +298,10 @@ namespace CBlunt.ANTLR
 
         public override int VisitCalculation([NotNull] CBluntParser.CalculationContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitCalculation");
+#endif
+
             var operatorContext = context.@operator().GetText();
 
             // If a parameter was found, add it to the store
@@ -410,11 +418,6 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitParameter");
 #endif
-
-            if (context.ID() != null)
-            {
-                
-            }
 
             return 0;
         }
@@ -594,6 +597,10 @@ namespace CBlunt.ANTLR
 
         public override int VisitLogic([NotNull] CBluntParser.LogicContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitLogic");
+#endif
+
             // Get left-hand side
             _expressionStore.AddLast(new ExpressionStore());
             Visit(context.expression(0));
@@ -654,6 +661,10 @@ namespace CBlunt.ANTLR
 
         public override int VisitFunctionreturn([NotNull] CBluntParser.FunctionreturnContext context)
         {
+#if DEBUG
+            Console.WriteLine("VisitFunctionreturn");
+#endif
+
             /// TODO: Evaluate here whatever is attempted to return is correct according to the method's type
 
             return base.VisitFunctionreturn(context);
