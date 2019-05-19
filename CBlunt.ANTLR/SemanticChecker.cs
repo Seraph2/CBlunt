@@ -582,6 +582,10 @@ namespace CBlunt.ANTLR
                 // Get the expected parameter type from the method's properties
                 var expectedParameterType = methodProperties.ParameterTypes[i];
 
+                // Number has a ToString conversion, set appropriate type here if it is as such
+                if (expectedParameterType == "text" && _expressionStore.Last.Value.Type == "number")
+                    _expressionStore.Last.Value.Type = "text";
+
                 // If it is not equal to the retrieved parameter type, be it variable, functioncall etc, an error is imminent
                 if (expectedParameterType != _expressionStore.Last.Value.Type)
                 {
