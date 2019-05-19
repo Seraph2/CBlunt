@@ -6,7 +6,7 @@ SET DOTNET_VER = %DOTNET_VER40%
 
 SET DOTNET_PATH=C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319
 
-SET CONVERTPATH=%cd%\convertedcode
+SET CONVERTPATH=%~dp0
 ECHO %CONVERTPATH%
-for %%G in (%CONVERTPATH%) do ( %DOTNET_PATH%\csc.exe %%G )
+for /r %%s in (*) do ( %DOTNET_PATH%\csc.exe %%s )
 pause

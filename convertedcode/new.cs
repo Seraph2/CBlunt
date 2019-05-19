@@ -6,6 +6,7 @@ namespace CBCode {
 static void Main()
 {
  double a = 13 ;
+Console.WriteLine ( a ) ;
 }
  
 } 

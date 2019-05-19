@@ -2,4 +2,5 @@ number x = 3;
 
 void Main(){
 	number a = 13;
+	WriteLine(a);
 }
