@@ -314,7 +314,6 @@ namespace CBlunt.ANTLR
 
                 if (prevExpressionStoreType == null)
                 {
-                    Console.WriteLine(1);
                     if (!AddToExpressionStore(parameterType))
                         return 1;
 
@@ -519,8 +518,6 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitStatement");
 #endif
-            /// TODO: Iterate as the rule requires it
-            //Visit(context.functioncall());
 
             return base.VisitStatement(context);
         }
