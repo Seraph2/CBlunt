@@ -66,7 +66,7 @@ namespace CBlunt.ANTLR
             if (context.children.Count() > 2)
             {
                 this.AddText("=");
-                Visit(context.expression());
+                Visit(context.GetChild(3));
             }
             return 0;
         }
@@ -175,8 +175,8 @@ namespace CBlunt.ANTLR
 
 #endif
             this.AddText(context.ID().GetText());
-            Visit(context.equals());
-            Visit(context.expression());
+            Visit(context.GetChild(1));
+            Visit(context.GetChild(2));
             return 0;
         }
 
@@ -302,7 +302,7 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitRelational");
 #endif
-            this.AddText(context.GetText());
+            AddText(context.GetText());
             return 0;
         }
 
@@ -311,7 +311,9 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitConditional");
 #endif
-            this.AddText(context.GetText());
+            if (context.GetText() == "and") { AddText("&&"); }
+            else if (context.GetText() == "or") { AddText("||"); }
+            else AddText(context.GetText());
             return 0;
         }
 
