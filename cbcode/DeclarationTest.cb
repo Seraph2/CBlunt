@@ -1,0 +1,11 @@
+void Main(){
+	number abc = 13;
+	number abc2 = -13;
+	text cde = "Declaration Test";
+	bool fgh = true;
+	bool ijk = false;
+	abc = 15;
+	cde = "Assignment Test";
+	fgh = false;
+	ijk = true;
+}

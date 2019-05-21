@@ -118,7 +118,7 @@ namespace CBlunt.ANTLR
                 return;
 
             // Clear console for clean output
-            Console.Clear();
+            //Console.Clear();
 
             // Clean the symbol table
             SymbolTable.MethodDictionary.Clear();
