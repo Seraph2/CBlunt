@@ -4,4 +4,8 @@ void Main()
 	bool condition2 = 2 < 3 and 5 < 6;
 	bool condition3 = 2 < 3 || 5 < 6;
 	bool condition4 = 2 < 3 or 5 < 6;
+	WriteLine(condition1);
+	WriteLine(condition2);
+	WriteLine(condition3);
+	WriteLine(condition4);
 }

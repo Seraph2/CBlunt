@@ -1,4 +1,4 @@
-void Main(){ number a = Func(13, 15);}
+void Main(){ WriteLine(Func(13, 15));}
 
 number Func(number part1, number part2)
 {

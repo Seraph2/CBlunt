@@ -4,8 +4,17 @@ void Main(){
 	text cde = "Declaration Test";
 	bool fgh = true;
 	bool ijk = false;
+	WriteLine(abc);
+	WriteLine(abc2);
+	WriteLine(cde);
+	WriteLine(fgh);
+	WriteLine(ijk);
 	abc = 15;
 	cde = "Assignment Test";
 	fgh = false;
 	ijk = true;
+	WriteLine(abc);
+	WriteLine(cde);
+	WriteLine(fgh);
+	WriteLine(ijk);
 }
