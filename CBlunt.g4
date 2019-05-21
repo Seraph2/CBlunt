@@ -35,11 +35,11 @@ elsestmt
 	;
 
 declaration
-    : variabletype ID ('=' (expression | condition) )? // text a = "hello";
+    : variabletype ID ('=' expression)? // text a = "hello";
     ;
 
 variableedit
-	: ID equals (expression | condition ) // a = "edited";
+	: ID equals expression // a = "edited";
 	;
 
 expression
