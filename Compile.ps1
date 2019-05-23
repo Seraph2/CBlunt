@@ -26,12 +26,12 @@ foreach($csFile in (Get-ChildItem -Path ./convertedcode -Filter '*.cs'))
     New-Item -Path "./convertedcode/" -Name "$fileName" -ItemType Directory;
     New-Item -Path $projectPath -Name "$fileName.csproj" -ItemType File -Value $csprojContent;
 
-    Copy-Item -Path $csFile -Destination $projectPath
+    Copy-Item -Path $csFile.FullName -Destination $projectPath
 
     dotnet publish "$projectPath/$fileName.csproj" -c Release -o "publish"
 
-    Move-Item -Path "$projectPath/publish/$fileName.dll" -Destination "./convertedcode/bin/" -Force;
-    Move-Item -Path "$projectPath/publish/$fileName.runtimeconfig.json" -Destination "./convertedcode/bin/" -Force;
+    #Move-Item -Path "$projectPath/publish/$fileName.dll" -Destination "./convertedcode/bin/" -Force;
+    #Move-Item -Path "$projectPath/publish/$fileName.runtimeconfig.json" -Destination "./convertedcode/bin/" -Force;
 
-    Remove-Item -Path $projectPath -Recurse;
+    #Remove-Item -Path $projectPath -Recurse;
 }
