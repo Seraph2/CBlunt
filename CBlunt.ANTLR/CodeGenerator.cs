@@ -386,8 +386,14 @@ namespace CBlunt.ANTLR
 
         public CodeGenerator(string fileName, string outputpath = "") {
             string name = Path.GetFileNameWithoutExtension(fileName);
-            if (outputpath == "") { filepath = name; }
-            else { filepath = outputpath + "\\" + name; }
+            if (outputpath == "") 
+            { 
+                filepath = name; 
+            }
+            else 
+            {
+                filepath = outputpath + Path.DirectorySeparatorChar + name; //changed from '\\' to Path.DirectorySeparatorChar because that is platform independant
+            }
             //Normally one would think Path.ChangeExtension() would be an appropriate method.
             //But I have found it does absolutely nothing. So uh, yeah, don't bother with it.
             filepath += ".cs";
