@@ -2,7 +2,7 @@
 
 #place standard dotnet core 2.0 cs proj file in dir
 
-#dotnet CBlunt.ANTLR/bin/Release/netcoreapp2.1/CBlunt.ANTLR.dll cbcode convertedcode
+dotnet CBlunt.ANTLR/bin/Release/netcoreapp2.1/CBlunt.ANTLR.dll cbcode convertedcode
 
 
 #This part of the code handles the .NET Core call
