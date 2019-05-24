@@ -1,37 +1,106 @@
+param([string]$inputdir = "cbcode", [string]$output = "./convertedcode", [string]$cbluntcompiler = 'CBlunt.ANTLR/bin/Release/netcoreapp2.1/CBlunt.ANTLR.dll', [string]$targetframework = "netcoreapp2.1")
 #
 # CBlunt Compile script written in powershell
 #
 
-$csprojContent = '<Project Sdk="Microsoft.NET.Sdk">
+
+#Begin Function declarations
+
+function Remove-OldCSFiles([string]$inputdir, [string]$outputdir)
+{
+    if(!(Test-Path -Path $inputdir)){
+        Write-Host "The input path '$inputdir' does not exist or was inaccessible" -ForegroundColor Red;
+        exit;
+    }
+    if(!(Test-Path -Path $output)){
+        New-Item -Path $output -ItemType Directory -ErrorAction Stop
+    }
+    
+    foreach($filename in (Get-ChildItem -Path $inputdir -Filter '*.cb'))
+    {
+        $filesToRemove = @();
+        foreach($csfile in (Get-ChildItem -Path $outputdir -Filter '*.cs'))
+        {
+            $fileNameNoext = $filename.Name.Substring(0, $filename.Name.Length - 3);
+            if($fileNameNoext.Equals($csfile.Name.Substring(0, $csfile.Name.Length - 3)))
+            {
+                $filesToRemove += $csfile;
+            }
+            
+        }
+        $filesToRemove.ForEach({Remove-Item -Path $_; Write-Host "Removed old cs file: $_"});
+    }
+}
+
+function Run-Compiler([string]$compiler, [string]$inputdir, [string]$output)
+{
+
+    if(!(Test-Path -Path $inputdir)){
+        Write-Host "The input path '$inputdir' does not exist or was inaccessible" -ForegroundColor Red;
+        exit;
+    }
+    if(!(Test-Path -Path $output)){
+        New-Item -Path $output -ItemType Directory -ErrorAction Stop
+    }
+
+    dotnet $cbluntcompiler $inputdir $output
+}
+
+function New-BinDir([string]$dir)
+{
+    if(!(Test-Path -Path "$dir/bin"))
+    {
+        New-Item -Path $dir -Name "bin" -ItemType Directory -ErrorAction Stop;
+    }
+}
+
+function Make-CSProject([string]$fileName, [string]$projectPath, [string]$targetframework)
+{
+    $csprojContent = '<Project Sdk="Microsoft.NET.Sdk">
 <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>' + $targetframework + '</TargetFramework>
 </PropertyGroup>
 </Project>';
 
-
-dotnet CBlunt.ANTLR/bin/Release/netcoreapp2.1/CBlunt.ANTLR.dll cbcode convertedcode
-
-if(!(Get-Item -Path ./convertedcode/bin))
-{
-    New-Item -Path "./convertedcode/" -Name "bin" -ItemType Directory;
-}
-
-
-foreach($csFile in (Get-ChildItem -Path ./convertedcode -Filter '*.cs'))
-{
-    $fileName = $csFile.Name.Substring(0, $csFile.Name.Length - 3);
-    $projectPath = "./convertedcode/" + $fileName;
-
-    New-Item -Path "./convertedcode/" -Name "$fileName" -ItemType Directory;
+    New-Item -Path $output -Name "$fileName" -ItemType Directory;
     New-Item -Path $projectPath -Name "$fileName.csproj" -ItemType File -Value $csprojContent;
 
     Copy-Item -Path $csFile.FullName -Destination $projectPath
+}
 
-    dotnet publish "$projectPath/$fileName.csproj" -c Release -o "publish"
-
-    Move-Item -Path "$projectPath/publish/$fileName.dll" -Destination "./convertedcode/bin/" -Force;
-    Move-Item -Path "$projectPath/publish/$fileName.runtimeconfig.json" -Destination "./convertedcode/bin/" -Force;
+function Clean-DotnetDir([string]$projectPath, [string]$fileName, [string]$output)
+{
+    Move-Item -Path "$projectPath/publish/$fileName.dll" -Destination "$output/bin/" -Force;
+    Move-Item -Path "$projectPath/publish/$fileName.runtimeconfig.json" -Destination "$output/bin/" -Force;
 
     Remove-Item -Path $projectPath -Recurse;
 }
+
+function Run-DotnetCompiler([string]$inputdir)
+{
+    New-BinDir -dir $inputdir;
+
+    foreach($csFile in (Get-ChildItem -Path $inputdir -Filter '*.cs'))
+    {
+
+        $fileName = $csFile.Name.Substring(0, $csFile.Name.Length - 3);
+        $projectPath = "$inputdir/$fileName";
+
+        Make-CSProject -fileName $fileName -projectPath $projectPath -targetframework $targetframework
+
+        dotnet publish "$projectPath/$fileName.csproj" -c Release -o "publish"
+
+        Clean-DotnetDir -projectPath $projectPath -fileName $fileName -output $inputdir
+    }
+}
+
+#End Function declarations
+
+
+#Call the functions to generate the DLLs
+Remove-OldCSFiles -inputdir $inputdir -outputdir $output;
+
+Run-Compiler -compiler $cbluntcompiler -input $inputdir -output $output;
+
+Run-DotnetCompiler -inputdir $output;
