@@ -314,7 +314,6 @@ namespace CBlunt.ANTLR
 
                 if (prevExpressionStoreType == null)
                 {
-                    Console.WriteLine(1);
                     if (!AddToExpressionStore(parameterType))
                         return 1;
 
@@ -519,8 +518,6 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitStatement");
 #endif
-            /// TODO: Iterate as the rule requires it
-            //Visit(context.functioncall());
 
             return base.VisitStatement(context);
         }
@@ -581,6 +578,10 @@ namespace CBlunt.ANTLR
 
                 // Get the expected parameter type from the method's properties
                 var expectedParameterType = methodProperties.ParameterTypes[i];
+
+                // Number has a ToString conversion, set appropriate type here if it is as such
+                if (expectedParameterType == "text" && _expressionStore.Last.Value.Type == "number")
+                    _expressionStore.Last.Value.Type = "text";
 
                 // If it is not equal to the retrieved parameter type, be it variable, functioncall etc, an error is imminent
                 if (expectedParameterType != _expressionStore.Last.Value.Type)
