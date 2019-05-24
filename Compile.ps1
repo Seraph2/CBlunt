@@ -63,16 +63,16 @@ function Make-CSProject([string]$fileName, [string]$projectPath, [string]$target
 </PropertyGroup>
 </Project>';
 
-    New-Item -Path $output -Name "$fileName" -ItemType Directory;
-    New-Item -Path $projectPath -Name "$fileName.csproj" -ItemType File -Value $csprojContent;
+    New-Item -Path $output -Name "$fileName" -ItemType Directory | Out-Null;
+    New-Item -Path $projectPath -Name "$fileName.csproj" -ItemType File -Value $csprojContent | Out-Null;
 
     Copy-Item -Path $csFile.FullName -Destination $projectPath
 }
 
 function Clean-DotnetDir([string]$projectPath, [string]$fileName, [string]$output)
 {
-    Move-Item -Path "$projectPath/publish/$fileName.dll" -Destination "$output/bin/" -Force;
-    Move-Item -Path "$projectPath/publish/$fileName.runtimeconfig.json" -Destination "$output/bin/" -Force;
+    Move-Item -Path "$projectPath/publish/$fileName.dll" -Destination "$output/bin/" -Force | Out-Null;
+    Move-Item -Path "$projectPath/publish/$fileName.runtimeconfig.json" -Destination "$output/bin/" -Force | Out-Null;
 
     Remove-Item -Path $projectPath -Recurse;
 }
@@ -89,7 +89,7 @@ function Run-DotnetCompiler([string]$inputdir)
 
         Make-CSProject -fileName $fileName -projectPath $projectPath -targetframework $targetframework
 
-        dotnet publish "$projectPath/$fileName.csproj" -c Release -o "publish"
+        dotnet publish "$projectPath/$fileName.csproj" -c Release -o "publish" | Out-Null;
 
         Clean-DotnetDir -projectPath $projectPath -fileName $fileName -output $inputdir
     }
