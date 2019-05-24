@@ -6,8 +6,9 @@ param([string]$inputdir = "cbcode", [string]$output = "./convertedcode", [string
 
 #Begin Function declarations
 
-function Remove-OldCSFiles([string]$inputdir, [string]$outputdir)
+function Remove-OldAssemblyFiles([string]$inputdir, [string]$outputdir)
 {
+
     if(!(Test-Path -Path $inputdir)){
         Write-Host "The input path '$inputdir' does not exist or was inaccessible" -ForegroundColor Red;
         exit;
@@ -19,15 +20,23 @@ function Remove-OldCSFiles([string]$inputdir, [string]$outputdir)
     foreach($filename in (Get-ChildItem -Path $inputdir -Filter '*.cb'))
     {
         $filesToRemove = @();
-        foreach($csfile in (Get-ChildItem -Path $outputdir -Filter '*.cs'))
+        $removePattern = (($filename.Name.Split("."))[0]) + "[\w|.]*";
+        Write-Host $removePattern
+        foreach($csfile in (Get-ChildItem -Path $outputdir -Filter '*.cs' ))#| Where-Object -FilterScript {$_.Name -Match $removePattern}))
         {
             $fileNameNoext = $filename.Name.Substring(0, $filename.Name.Length - 3);
-            if($fileNameNoext.Equals($csfile.Name.Substring(0, $csfile.Name.Length - 3)))
+            if($fileNameNoext.Equals($csfile.Name.Split(".")[0]))
             {
                 $filesToRemove += $csfile;
             }
             
         }
+
+        foreach($assembly in (Get-ChildItem -Path "$outputdir/bin" | Where-Object -FilterScript {$_.Name -Match $removePattern}))
+        {
+            $filesToRemove += $assembly;
+        }
+
         $filesToRemove.ForEach({Remove-Item -Path $_; Write-Host "Removed old cs file: $_"});
     }
 }
@@ -99,7 +108,7 @@ function Run-DotnetCompiler([string]$inputdir)
 
 
 #Call the functions to generate the DLLs
-Remove-OldCSFiles -inputdir $inputdir -outputdir $output;
+Remove-OldAssemblyFiles -inputdir $inputdir -outputdir $output;
 
 Run-Compiler -compiler $cbluntcompiler -input $inputdir -output $output;
 
