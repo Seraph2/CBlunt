@@ -98,6 +98,7 @@ function Run-DotnetCompiler([string]$inputdir)
 
         Make-CSProject -fileName $fileName -projectPath $projectPath -targetframework $targetframework
 
+        Write-Host "Compiling $fileName.cs to .NET Assembly..."
         dotnet publish "$projectPath/$fileName.csproj" -c Release -o "publish" | Out-Null;
 
         Clean-DotnetDir -projectPath $projectPath -fileName $fileName -output $inputdir
@@ -113,3 +114,6 @@ Remove-OldAssemblyFiles -inputdir $inputdir -outputdir $output;
 Run-Compiler -compiler $cbluntcompiler -input $inputdir -output $output;
 
 Run-DotnetCompiler -inputdir $output;
+
+Write-Host "";
+Write-Host "...Done!";
