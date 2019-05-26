@@ -109,8 +109,6 @@ truth
 	| 'false'
 	;
 
-DIGIT: [0-9]+;
-
 equals
 	: operator? '='
 	;

@@ -106,28 +106,4 @@ namespace CBlunt.ANTLR
             SymbolTable.MethodDictionary.Add(methodName, methodProperties);
         }
     }
-
-    /*
-     * Store for a variable's properties
-     */
-    class VariableProperties
-    {
-        // The type of the variable (number, text, bool etc.)
-        public string Type { get; set; }
-
-        // Determine whether the variable has been initialized or not (aka null)
-        // It is impossible to initialize a variable with null in CBlunt, therefore this only applies to ex:
-        // number a;
-        public bool Initialized { get; set; }
-
-        // If not specified, the value of the variable is null
-        public VariableProperties(string type, string value = null)
-        {
-            // Set the variable's type
-            Type = type;
-
-            if (value != null)
-                Initialized = true;
-        }
-    }
 }

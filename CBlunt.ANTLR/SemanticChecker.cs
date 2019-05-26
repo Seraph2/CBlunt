@@ -10,11 +10,6 @@ namespace CBlunt.ANTLR
 {
     class SemanticChecker : CBluntBaseVisitor<int>
     {
-        private readonly Dictionary<string, VariableProperties> _classScopeVariablesDictionary = new Dictionary<string, VariableProperties>();
-        private readonly LinkedList<Dictionary<string, VariableProperties>> _methodScopeLinkedList = new LinkedList<Dictionary<string, VariableProperties>>();
-        private readonly LinkedList<ExpressionStore> _expressionStore = new LinkedList<ExpressionStore>();
-        private string _currentMethodType = "";
-
         void SyntaxError(object context, string err)
         {
             var errLine = (int)GetPropertyValue(GetPropertyValue(context, "Start"), "Line");
@@ -104,15 +99,15 @@ namespace CBlunt.ANTLR
                 return 0;
             }
 
-            _expressionStore.AddLast(new ExpressionStore());
+            SymbolTable.ExpressionStoreLinkedList.AddLast(new ExpressionStore());
 
             // Visit the expression
             Visit(context.expression());
 
             // Set the found parameter type
-            var foundParameterType = _expressionStore.Last.Value.Type;
+            var foundParameterType = SymbolTable.ExpressionStoreLinkedList.Last.Value.Type;
 
-            _expressionStore.RemoveLast();
+            SymbolTable.ExpressionStoreLinkedList.RemoveLast();
 
             // Check the variable's type against the found type
             if (variableType != foundParameterType)
@@ -133,7 +128,7 @@ namespace CBlunt.ANTLR
 #endif
 
             // Create a new scope to the linked list
-            _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
+            SymbolTable.MethodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
 
             // Get the method's type
             var methodType = context.functiontype().GetText();
@@ -171,16 +166,16 @@ namespace CBlunt.ANTLR
                 };
 
                 // Add the variable along with properties to the method scope
-                _methodScopeLinkedList.Last.Value.Add(parameterName, variableProperties);
+                SymbolTable.MethodScopeLinkedList.Last.Value.Add(parameterName, variableProperties);
             }
 
-            _currentMethodType = methodType;
+            SymbolTable.CurrentMethodType = methodType;
 
             // Visit the block of the method
             Visit(context.block());
 
             // After the function has finished, remove the scope
-            _methodScopeLinkedList.RemoveLast();
+            SymbolTable.MethodScopeLinkedList.RemoveLast();
 
             return 0;
         }
@@ -192,7 +187,7 @@ namespace CBlunt.ANTLR
 #endif
 
             if (context.Parent.RuleIndex != CBluntParser.RULE_function)
-                _methodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
+                SymbolTable.MethodScopeLinkedList.AddLast(new Dictionary<string, VariableProperties>());
 
             // In the initial scope of the method, check whether there exists at least one return. Error if there exists multiple
             int returnCount = 0;
@@ -210,58 +205,58 @@ namespace CBlunt.ANTLR
                 ++returnCount;
 
                 // Check for void: it cannot return anything
-                if (context.statement(i).functionreturn().expression() != null && _currentMethodType == "void")
+                if (context.statement(i).functionreturn().expression() != null && SymbolTable.CurrentMethodType == "void")
                 {
                     SyntaxError(context, "Void methods cannot return values");
                     return 1;
                 }
 
                 // Check for non-void: it MUST return something
-                if (context.statement(i).functionreturn().expression() == null && _currentMethodType != "void")
+                if (context.statement(i).functionreturn().expression() == null && SymbolTable.CurrentMethodType != "void")
                 {
-                    SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " must return a value");
+                    SyntaxError(context, "Method " + SymbolTable.CurrentMethodType + " with type " + SymbolTable.CurrentMethodType + " must return a value");
                     return 1;
                 }
 
                 // If there exists multiple returns, there is a problem. This accounts for both void and other types
                 if (returnCount > 1)
                 {
-                    SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " cannot return multiple times in its method scope");
+                    SyntaxError(context, "Method " + SymbolTable.CurrentMethodType + " with type " + SymbolTable.CurrentMethodType + " cannot return multiple times in its method scope");
                     return 1;
                 }
 
                 // Initial checks done, now expression has to be visited to determine the return type according to method type
                 // void can of course be skipped
-                if (_currentMethodType == "void")
+                if (SymbolTable.CurrentMethodType == "void")
                     continue;
 
                 // Add to the expression store
-                _expressionStore.AddLast(new ExpressionStore());
+                SymbolTable.ExpressionStoreLinkedList.AddLast(new ExpressionStore());
 
                 // Get the type returned
                 Visit(context.statement(i).functionreturn().expression());
 
-                var returnType = _expressionStore.Last.Value.Type;
+                var returnType = SymbolTable.ExpressionStoreLinkedList.Last.Value.Type;
 
-                if (_currentMethodType != returnType)
+                if (SymbolTable.CurrentMethodType != returnType)
                 {
-                    SyntaxError(context, "A type " + returnType + " is returned, a type " + _currentMethodType + " was expected to be returned instead");
+                    SyntaxError(context, "A type " + returnType + " is returned, a type " + SymbolTable.CurrentMethodType + " was expected to be returned instead");
                     return 1;
                 }
 
-                _expressionStore.RemoveLast();
+                SymbolTable.ExpressionStoreLinkedList.RemoveLast();
 
             }
 
             // If there exists no return and it is NOT a method of type void, output an error
-            if (returnCount == 0 && _currentMethodType != "void" && _methodScopeLinkedList.Count == 1)
+            if (returnCount == 0 && SymbolTable.CurrentMethodType != "void" && SymbolTable.MethodScopeLinkedList.Count == 1)
             {
-                SyntaxError(context, "Method " + _currentMethodType + " with type " + _currentMethodType + " does not return a type " + _currentMethodType);
+                SyntaxError(context, "Method " + SymbolTable.CurrentMethodType + " with type " + SymbolTable.CurrentMethodType + " does not return a type " + SymbolTable.CurrentMethodType);
                 return 1;
             }
 
             if (context.Parent.RuleIndex != CBluntParser.RULE_function)
-                _methodScopeLinkedList.RemoveLast();
+                SymbolTable.MethodScopeLinkedList.RemoveLast();
 
             return 0;
         }
@@ -283,7 +278,7 @@ namespace CBlunt.ANTLR
             // With no calculations, it is simply the assignment type
             if (calculationCount == 0)
             {
-                _expressionStore.Last.Value.Type = assignmentType;
+                SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = assignmentType;
                 return 0;
             }
 
@@ -310,7 +305,7 @@ namespace CBlunt.ANTLR
                 var parameter = context.parameter();
                 var parameterType = GetParameterType(context, parameter);
 
-                var prevExpressionStoreType = _expressionStore.Last.Value.ExpressionTypes.Last;
+                var prevExpressionStoreType = SymbolTable.ExpressionStoreLinkedList.Last.Value.ExpressionTypes.Last;
 
                 if (prevExpressionStoreType == null)
                 {
@@ -329,29 +324,29 @@ namespace CBlunt.ANTLR
                     case "+":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Last.Value.Type == "text")
+                            if (SymbolTable.ExpressionStoreLinkedList.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Last.Value.Type = "number";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "number";
                             break;
                         }
 
                         if (prevExpressionStoreValue == "text" && parameterType == "text")
                         {
-                            _expressionStore.Last.Value.Type = "text";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "text";
                             break;
                         }
-                            
+
 
                         if (prevExpressionStoreValue == "number" && parameterType == "text")
                         {
-                            _expressionStore.Last.Value.Type = "text";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "text";
                             break;
                         }
 
                         if (prevExpressionStoreValue == "text" && parameterType == "number")
                         {
-                            _expressionStore.Last.Value.Type = "text";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "text";
                             break;
                         }
 
@@ -361,10 +356,10 @@ namespace CBlunt.ANTLR
                     case "-":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Last.Value.Type == "text")
+                            if (SymbolTable.ExpressionStoreLinkedList.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Last.Value.Type = "number";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "number";
                             break;
                         }
 
@@ -374,10 +369,10 @@ namespace CBlunt.ANTLR
                     case "*":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Last.Value.Type == "text")
+                            if (SymbolTable.ExpressionStoreLinkedList.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Last.Value.Type = "number";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "number";
                             break;
                         }
 
@@ -387,10 +382,10 @@ namespace CBlunt.ANTLR
                     case "/":
                         if (prevExpressionStoreValue == "number" && parameterType == "number")
                         {
-                            if (_expressionStore.Last.Value.Type == "text")
+                            if (SymbolTable.ExpressionStoreLinkedList.Last.Value.Type == "text")
                                 break;
 
-                            _expressionStore.Last.Value.Type = "number";
+                            SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "number";
                             break;
                         }
 
@@ -408,7 +403,7 @@ namespace CBlunt.ANTLR
                 if (Visit(context.expression()) == 1)
                     return 1;
             }
-            
+
             return base.VisitCalculation(context);
         }
 
@@ -438,7 +433,7 @@ namespace CBlunt.ANTLR
             /// TODO: USE UTILITY METHOD
 
             // First iterate over the current scope and all previous scopes
-            var currNode = _methodScopeLinkedList.Last;
+            var currNode = SymbolTable.MethodScopeLinkedList.Last;
 
             // The properties of the variable we found
             VariableProperties variableProperties = null;
@@ -452,14 +447,14 @@ namespace CBlunt.ANTLR
             }
 
             // Get the expected assignment value, aka the value we expect the variable to be assigned
-            _expressionStore.AddLast(new ExpressionStore());
+            SymbolTable.ExpressionStoreLinkedList.AddLast(new ExpressionStore());
 
             Visit(context.expression());
 
             // Set assignment type from expression, compare it against operator type
-            var assignmentType = _expressionStore.Last.Value.Type;
+            var assignmentType = SymbolTable.ExpressionStoreLinkedList.Last.Value.Type;
 
-            _expressionStore.RemoveLast();
+            SymbolTable.ExpressionStoreLinkedList.RemoveLast();
 
             switch (operatorType)
             {
@@ -527,7 +522,7 @@ namespace CBlunt.ANTLR
 #if DEBUG
             Console.WriteLine("VisitFunctioncall");
 #endif
-            
+
             // The name of the method to call
             var methodName = context.ID().GetText();
 
@@ -563,7 +558,7 @@ namespace CBlunt.ANTLR
             // Compare the method's parameters with the found parameters to see whether they match
             for (int i = 0; i < context.expression().Count(); ++i)
             {
-                _expressionStore.AddLast(new ExpressionStore());
+                SymbolTable.ExpressionStoreLinkedList.AddLast(new ExpressionStore());
 
                 Visit(context.expression(i));
 
@@ -580,17 +575,17 @@ namespace CBlunt.ANTLR
                 var expectedParameterType = methodProperties.ParameterTypes[i];
 
                 // Number has a ToString conversion, set appropriate type here if it is as such
-                if (expectedParameterType == "text" && _expressionStore.Last.Value.Type == "number")
-                    _expressionStore.Last.Value.Type = "text";
+                if (expectedParameterType == "text" && SymbolTable.ExpressionStoreLinkedList.Last.Value.Type == "number")
+                    SymbolTable.ExpressionStoreLinkedList.Last.Value.Type = "text";
 
                 // If it is not equal to the retrieved parameter type, be it variable, functioncall etc, an error is imminent
-                if (expectedParameterType != _expressionStore.Last.Value.Type)
+                if (expectedParameterType != SymbolTable.ExpressionStoreLinkedList.Last.Value.Type)
                 {
-                    SyntaxError(context, "Method " + methodNiceName + " got type " + _expressionStore.Last.Value.Type + " as parameter number " + parameterCount + ", expected " + expectedParameterType);
+                    SyntaxError(context, "Method " + methodNiceName + " got type " + SymbolTable.ExpressionStoreLinkedList.Last.Value.Type + " as parameter number " + parameterCount + ", expected " + expectedParameterType);
                     return 1;
                 }
 
-                _expressionStore.RemoveLast();
+                SymbolTable.ExpressionStoreLinkedList.RemoveLast();
             }
 
             return 0;
@@ -603,16 +598,16 @@ namespace CBlunt.ANTLR
 #endif
 
             // Get left-hand side
-            _expressionStore.AddLast(new ExpressionStore());
+            SymbolTable.ExpressionStoreLinkedList.AddLast(new ExpressionStore());
             Visit(context.expression(0));
-            var expr1Type = _expressionStore.Last.Value.Type;
-            _expressionStore.RemoveLast();
+            var expr1Type = SymbolTable.ExpressionStoreLinkedList.Last.Value.Type;
+            SymbolTable.ExpressionStoreLinkedList.RemoveLast();
 
             // Get right-hand side
-            _expressionStore.AddLast(new ExpressionStore());
+            SymbolTable.ExpressionStoreLinkedList.AddLast(new ExpressionStore());
             Visit(context.expression(1));
-            var expr2Type = _expressionStore.Last.Value.Type;
-            _expressionStore.RemoveLast();
+            var expr2Type = SymbolTable.ExpressionStoreLinkedList.Last.Value.Type;
+            SymbolTable.ExpressionStoreLinkedList.RemoveLast();
 
             if (expr1Type != "number")
             {
@@ -680,12 +675,12 @@ namespace CBlunt.ANTLR
             if (parentRuleIndex == CBluntParser.RULE_start)
             {
                 // Add the new variable to the class level and create variable properties for it
-                _classScopeVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
+                SymbolTable.ClassScopeVariablesDictionary.Add(variableName, new VariableProperties(variableType, variableValue));
             }
             else
             {
                 // Add the new variable to the last LinkedList node, and initialize a dictionary to it
-                _methodScopeLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
+                SymbolTable.MethodScopeLinkedList.Last.Value.Add(variableName, new VariableProperties(variableType, variableValue));
             }
         }
 
@@ -743,7 +738,7 @@ namespace CBlunt.ANTLR
         VariableProperties GetDeclaredVariableInMethodScope(string variableName)
         {
             // Get the last node to iterate backwards over the linked list. Note that it is impossible for the linked list to be empty initially
-            var currNode = _methodScopeLinkedList.Last;
+            var currNode = SymbolTable.MethodScopeLinkedList.Last;
 
             // Create variable properties variable for storing the output
             VariableProperties variableProperties = null;
@@ -754,7 +749,7 @@ namespace CBlunt.ANTLR
             {
                 // Get the value (aka. dictionary) of the scope
                 var scopeVariables = currNode.Value;
-                
+
                 // Determine whether the variable exists in the scope
                 // Stop the loop if the variable has been found in the current scope
                 if (scopeVariables.ContainsKey(variableName))
@@ -779,8 +774,8 @@ namespace CBlunt.ANTLR
             // Create variableproperties var for storing the potential class variable
             VariableProperties variableProperties = null;
 
-            if (_classScopeVariablesDictionary.ContainsKey(variableName))
-                variableProperties = _classScopeVariablesDictionary[variableName];
+            if (SymbolTable.ClassScopeVariablesDictionary.ContainsKey(variableName))
+                variableProperties = SymbolTable.ClassScopeVariablesDictionary[variableName];
 
             // Return either null or the variable's properties
             return variableProperties;
@@ -800,17 +795,17 @@ namespace CBlunt.ANTLR
             string prevExpressionStoreType = null;
 
             // If there exists a previous node, get its type
-            if (_expressionStore.Last.Value.ExpressionTypes.Last != null)
-                prevExpressionStoreType = _expressionStore.Last.Value.ExpressionTypes.Last.Value;
+            if (SymbolTable.ExpressionStoreLinkedList.Last.Value.ExpressionTypes.Last != null)
+                prevExpressionStoreType = SymbolTable.ExpressionStoreLinkedList.Last.Value.ExpressionTypes.Last.Value;
 
             // If there exists no previous expression, simply store the parameter type
             if (prevExpressionStoreType == null)
             {
-                _expressionStore.Last.Value.ExpressionTypes.AddLast(parameterType);
+                SymbolTable.ExpressionStoreLinkedList.Last.Value.ExpressionTypes.AddLast(parameterType);
                 return true;
             }
 
-            _expressionStore.Last.Value.ExpressionTypes.AddLast(parameterType);
+            SymbolTable.ExpressionStoreLinkedList.Last.Value.ExpressionTypes.AddLast(parameterType);
 
             return true;
         }
